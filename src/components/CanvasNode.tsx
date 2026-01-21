@@ -21,10 +21,24 @@ const CanvasNode: React.FC<CanvasNodeProps> = ({ node, onNodeClick, isConnecting
 
   const handleDragStart = useCallback(() => {
     isDragging.current = true;
+    // Disable stage dragging when dragging a node
+    const stage = groupRef.current?.getStage();
+    if (stage) {
+      stage.draggable(false);
+    }
   }, []);
 
   const handleDragEnd = useCallback((e: any) => {
     isDragging.current = false;
+    
+    // Re-enable stage dragging
+    const stage = e.target.getStage();
+    if (stage) {
+      setTimeout(() => {
+        stage.draggable(true);
+      }, 50);
+    }
+    
     updateNode(node.id, {
       position: {
         x: e.target.x(),

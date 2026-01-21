@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { 
   MousePointer, 
   Link, 
@@ -8,7 +8,8 @@ import {
   FileText,
   Video,
   Paintbrush,
-  ExternalLink
+  ExternalLink,
+  RotateCcw
 } from 'lucide-react';
 import useCanvasStore from '../store/canvasStore';
 import { downloadCanvasAsJSON, uploadJSONFile } from '../utils';
@@ -24,6 +25,23 @@ const Toolbar: React.FC = () => {
     setZoom,
     nodes,
   } = useCanvasStore();
+
+  // Load example data on first load
+  useEffect(() => {
+    if (nodes.length === 0) {
+      loadExampleData();
+    }
+  }, []);
+
+  const loadExampleData = async () => {
+    try {
+      const response = await fetch('/example-canvas-data.json');
+      const exampleData = await response.json();
+      importState(exampleData);
+    } catch (error) {
+      console.log('Could not load example data:', error);
+    }
+  };
 
   const handleAddNode = (nodeType: 'document' | 'link' | 'video' | 'sketch' | 'text') => {
     const position = {
@@ -118,7 +136,8 @@ const Toolbar: React.FC = () => {
   };
 
   const handleZoomChange = (delta: number) => {
-    setZoom(zoom + delta);
+    const newZoom = Math.max(0.2, Math.min(2, zoom + delta));
+    setZoom(newZoom);
   };
 
   return (
@@ -220,6 +239,14 @@ const Toolbar: React.FC = () => {
 
       {/* Import/Export */}
       <div style={{ display: 'flex', gap: '4px' }}>
+        <button
+          onClick={loadExampleData}
+          title="Load Example Data"
+        >
+          <RotateCcw size={14} />
+          Example
+        </button>
+        
         <button
           onClick={handleExport}
           title="Export Canvas (Ctrl+E)"

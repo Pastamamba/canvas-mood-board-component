@@ -98,24 +98,26 @@ export const useCanvasInteraction = () => {
     event.preventDefault();
     
     if (event.ctrlKey || event.metaKey) {
-      // Zoom
+      // Zoom with Ctrl/Cmd + wheel
       const delta = event.deltaY > 0 ? -0.1 : 0.1;
-      setZoom(zoom + delta);
+      setZoom(Math.max(0.1, Math.min(3, zoom + delta)));
     } else {
-      // Pan
-      setPanOffset({
-        x: panOffset.x - event.deltaX,
-        y: panOffset.y - event.deltaY,
-      });
+      // Zoom with just wheel (more intuitive)
+      const delta = event.deltaY > 0 ? -0.05 : 0.05;
+      setZoom(Math.max(0.1, Math.min(3, zoom + delta)));
     }
-  }, [zoom, panOffset, setZoom, setPanOffset]);
+  }, [zoom, setZoom]);
 
   const handleMouseDown = useCallback((event: MouseEvent) => {
-    if (event.button === 1 || (event.button === 0 && event.shiftKey)) {
-      // Middle mouse button or Shift+left click for panning
-      isDragging.current = true;
-      lastPanPoint.current = { x: event.clientX, y: event.clientY };
-      event.preventDefault();
+    if (event.button === 1 || event.button === 0) {
+      // Middle mouse button or left click for panning (when not clicking on nodes)
+      const target = event.target as HTMLElement;
+      if (target.tagName === 'CANVAS' || target.classList.contains('canvas-container')) {
+        isDragging.current = true;
+        lastPanPoint.current = { x: event.clientX, y: event.clientY };
+        event.preventDefault();
+        document.body.style.cursor = 'grabbing';
+      }
     }
   }, []);
 
@@ -135,6 +137,7 @@ export const useCanvasInteraction = () => {
 
   const handleMouseUp = useCallback(() => {
     isDragging.current = false;
+    document.body.style.cursor = '';
   }, []);
 
   const handleCanvasClick = useCallback((event: MouseEvent) => {

@@ -1,7 +1,7 @@
-import React, { useRef, useEffect, useCallback } from 'react';
-import { Stage, Layer, Line } from 'react-konva';
+import React, { useRef, useEffect, useCallback, useState } from 'react';
+import { Stage, Layer, Line, Rect } from 'react-konva';
 import useCanvasStore from '../store/canvasStore';
-import { useClipboard, useKeyboardShortcuts, useCanvasInteraction } from '../hooks/useCanvasInteraction';
+import { useClipboard, useKeyboardShortcuts } from '../hooks/useCanvasInteraction';
 import CanvasNode from './CanvasNode';
 import Toolbar from './Toolbar';
 import type { CanvasNode as CanvasNodeType } from '../types';
@@ -15,42 +15,92 @@ const Canvas: React.FC = () => {
     mode,
     clearSelection,
     addConnection,
+    setZoom,
+    setPanOffset,
   } = useCanvasStore();
 
   const stageRef = useRef<any>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const connectingFrom = useRef<string | null>(null);
+  const [isStageBeingDragged, setIsStageBeingDragged] = useState(false);
+
+  // Canvas boundaries - finite canvas size
+  const CANVAS_WIDTH = 3000;
+  const CANVAS_HEIGHT = 2000;
 
   // Custom hooks
   useClipboard();
   useKeyboardShortcuts();
-  const canvasInteraction = useCanvasInteraction();
 
-  // Handle stage events
+  // Handle wheel zoom
   useEffect(() => {
-    const container = containerRef.current;
-    if (!container) return;
+    const handleWheel = (e: WheelEvent) => {
+      e.preventDefault();
+      
+      const scaleBy = 1.08;
+      const stage = stageRef.current;
+      if (!stage) return;
 
-    container.addEventListener('wheel', canvasInteraction.handleWheel);
-    container.addEventListener('mousedown', canvasInteraction.handleMouseDown);
-    container.addEventListener('mousemove', canvasInteraction.handleMouseMove);
-    container.addEventListener('mouseup', canvasInteraction.handleMouseUp);
+      const oldScale = stage.scaleX();
+      const pointer = stage.getPointerPosition();
 
-    return () => {
-      container.removeEventListener('wheel', canvasInteraction.handleWheel);
-      container.removeEventListener('mousedown', canvasInteraction.handleMouseDown);
-      container.removeEventListener('mousemove', canvasInteraction.handleMouseMove);
-      container.removeEventListener('mouseup', canvasInteraction.handleMouseUp);
+      const mousePointTo = {
+        x: (pointer.x - stage.x()) / oldScale,
+        y: (pointer.y - stage.y()) / oldScale,
+      };
+
+      const direction = e.deltaY > 0 ? -1 : 1;
+      const newScale = direction > 0 ? oldScale * scaleBy : oldScale / scaleBy;
+      const clampedScale = Math.max(0.2, Math.min(2, newScale));
+
+      setZoom(clampedScale);
+
+      // Keep the zoom centered on mouse position
+      const newPos = {
+        x: pointer.x - mousePointTo.x * clampedScale,
+        y: pointer.y - mousePointTo.y * clampedScale,
+      };
+      
+      // Apply canvas boundaries
+      const boundedPos = {
+        x: Math.min(0, Math.max(window.innerWidth - CANVAS_WIDTH * clampedScale, newPos.x)),
+        y: Math.min(0, Math.max(window.innerHeight - CANVAS_HEIGHT * clampedScale, newPos.y)),
+      };
+      
+      setPanOffset(boundedPos);
     };
-  }, [canvasInteraction]);
+
+    const container = containerRef.current;
+    if (container) {
+      container.addEventListener('wheel', handleWheel, { passive: false });
+      return () => container.removeEventListener('wheel', handleWheel);
+    }
+  }, [setZoom, setPanOffset, CANVAS_WIDTH, CANVAS_HEIGHT]);
 
   const handleStageClick = useCallback((e: any) => {
-    // Check if we clicked on empty space
-    if (e.target === e.target.getStage()) {
+    // Only clear selection if we didn't drag the stage
+    if (e.target === e.target.getStage() && !isStageBeingDragged) {
       clearSelection();
       connectingFrom.current = null;
     }
-  }, [clearSelection]);
+  }, [clearSelection, isStageBeingDragged]);
+
+  const handleStageDragStart = useCallback(() => {
+    setIsStageBeingDragged(true);
+  }, []);
+
+  const handleStageDragEnd = useCallback((e: any) => {
+    // Apply boundaries when dragging ends
+    const newX = Math.min(0, Math.max(window.innerWidth - CANVAS_WIDTH * zoom, e.target.x()));
+    const newY = Math.min(0, Math.max(window.innerHeight - CANVAS_HEIGHT * zoom, e.target.y()));
+    
+    setPanOffset({ x: newX, y: newY });
+    
+    // Reset drag state after a small delay to prevent immediate clicks
+    setTimeout(() => {
+      setIsStageBeingDragged(false);
+    }, 100);
+  }, [setPanOffset, zoom, CANVAS_WIDTH, CANVAS_HEIGHT]);
 
   const handleNodeClick = useCallback((nodeId: string, event: any) => {
     event.cancelBubble = true;
@@ -102,8 +152,41 @@ const Canvas: React.FC = () => {
         y={panOffset.y}
         onClick={handleStageClick}
         onTap={handleStageClick}
-        draggable={false}
+        onDragStart={handleStageDragStart}
+        onDragEnd={handleStageDragEnd}
+        draggable={true}
       >
+        <Layer>
+          {/* Canvas background with visible boundaries */}
+          <Rect
+            x={0}
+            y={0}
+            width={CANVAS_WIDTH}
+            height={CANVAS_HEIGHT}
+            fill="#f8f9fa"
+            stroke="#dee2e6"
+            strokeWidth={2}
+          />
+          
+          {/* Grid pattern */}
+          {Array.from({ length: Math.ceil(CANVAS_WIDTH / 50) }, (_, i) => (
+            <Line
+              key={`vertical-${i}`}
+              points={[i * 50, 0, i * 50, CANVAS_HEIGHT]}
+              stroke="rgba(0,0,0,0.05)"
+              strokeWidth={1}
+            />
+          ))}
+          {Array.from({ length: Math.ceil(CANVAS_HEIGHT / 50) }, (_, i) => (
+            <Line
+              key={`horizontal-${i}`}
+              points={[0, i * 50, CANVAS_WIDTH, i * 50]}
+              stroke="rgba(0,0,0,0.05)"
+              strokeWidth={1}
+            />
+          ))}
+        </Layer>
+        
         <Layer>
           {/* Render connections */}
           {connections.map((connection) => {
