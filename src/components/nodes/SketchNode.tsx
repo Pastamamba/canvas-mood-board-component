@@ -1,4 +1,4 @@
-import React, { useRef, useState, useCallback } from 'react';
+import React, { useRef, useState, useCallback, memo } from 'react';
 import { Text, Group, Rect, Line } from 'react-konva';
 import type { SketchNode } from '../../types';
 import useCanvasStore from '../../store/canvasStore';
@@ -197,4 +197,4 @@ const SketchNodeContent: React.FC<SketchNodeProps> = ({ node }) => {
   );
 };
 
-export default SketchNodeContent;
+export default memo(SketchNodeContent);

@@ -1,4 +1,4 @@
-import React, { useRef, useEffect, useCallback, useState } from 'react';
+import React, { useRef, useEffect, useCallback, useState, useMemo } from 'react';
 import { Stage, Layer, Line, Rect } from 'react-konva';
 import useCanvasStore from '../store/canvasStore';
 import { useClipboard, useKeyboardShortcuts } from '../hooks/useCanvasInteraction';
@@ -23,6 +23,7 @@ const Canvas: React.FC = () => {
   const containerRef = useRef<HTMLDivElement>(null);
   const connectingFrom = useRef<string | null>(null);
   const [isStageBeingDragged, setIsStageBeingDragged] = useState(false);
+  const zoomTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   // Canvas boundaries - finite canvas size
   const CANVAS_WIDTH = 3000;
@@ -32,10 +33,17 @@ const Canvas: React.FC = () => {
   useClipboard();
   useKeyboardShortcuts();
 
-  // Handle wheel zoom
+  // Handle wheel zoom with throttling
   useEffect(() => {
     const handleWheel = (e: WheelEvent) => {
       e.preventDefault();
+      
+      // Throttle zoom updates for better performance
+      if (zoomTimeoutRef.current) return;
+      
+      zoomTimeoutRef.current = setTimeout(() => {
+        zoomTimeoutRef.current = null;
+      }, 16); // ~60fps
       
       const scaleBy = 1.08;
       const stage = stageRef.current;
@@ -115,25 +123,29 @@ const Canvas: React.FC = () => {
     }
   }, [mode, addConnection]);
 
-  const getConnectionPath = useCallback((fromNodeId: string, toNodeId: string) => {
-    const fromNode = nodes.find(n => n.id === fromNodeId);
-    const toNode = nodes.find(n => n.id === toNodeId);
-    
-    if (!fromNode || !toNode) return [];
+  const connectionPaths = useMemo(() => {
+    return connections.map(connection => {
+      const fromNode = nodes.find(n => n.id === connection.fromNodeId);
+      const toNode = nodes.find(n => n.id === connection.toNodeId);
+      
+      if (!fromNode || !toNode) return { id: connection.id, points: [] };
 
-    const fromCenter = {
-      x: fromNode.position.x + fromNode.size.width / 2,
-      y: fromNode.position.y + fromNode.size.height / 2,
-    };
-    
-    const toCenter = {
-      x: toNode.position.x + toNode.size.width / 2,
-      y: toNode.position.y + toNode.size.height / 2,
-    };
+      const fromCenter = {
+        x: fromNode.position.x + fromNode.size.width / 2,
+        y: fromNode.position.y + fromNode.size.height / 2,
+      };
+      
+      const toCenter = {
+        x: toNode.position.x + toNode.size.width / 2,
+        y: toNode.position.y + toNode.size.height / 2,
+      };
 
-    // Simple straight line connection
-    return [fromCenter.x, fromCenter.y, toCenter.x, toCenter.y];
-  }, [nodes]);
+      return {
+        id: connection.id,
+        points: [fromCenter.x, fromCenter.y, toCenter.x, toCenter.y]
+      };
+    });
+  }, [nodes, connections]);
 
   const stageWidth = window.innerWidth;
   const stageHeight = window.innerHeight;
@@ -189,12 +201,11 @@ const Canvas: React.FC = () => {
         
         <Layer>
           {/* Render connections */}
-          {connections.map((connection) => {
-            const points = getConnectionPath(connection.fromNodeId, connection.toNodeId);
-            return points.length > 0 ? (
+          {connectionPaths.map((connection) => {
+            return connection.points.length > 0 ? (
               <Line
                 key={connection.id}
-                points={points}
+                points={connection.points}
                 stroke="#6c757d"
                 strokeWidth={2}
                 opacity={0.7}

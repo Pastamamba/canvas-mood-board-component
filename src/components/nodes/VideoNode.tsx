@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react';
+import React, { useMemo, memo } from 'react';
 import { Text, Group, Rect, Image as KonvaImage } from 'react-konva';
 import type { VideoNode } from '../../types';
 import useCanvasStore from '../../store/canvasStore';
@@ -254,4 +254,4 @@ const Circle: React.FC<{
   />
 );
 
-export default VideoNodeContent;
+export default memo(VideoNodeContent);

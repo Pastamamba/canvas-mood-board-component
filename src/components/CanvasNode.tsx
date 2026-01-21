@@ -1,4 +1,4 @@
-import React, { useRef, useCallback } from 'react';
+import React, { useRef, useCallback, memo } from 'react';
 import { Group, Rect } from 'react-konva';
 import useCanvasStore from '../store/canvasStore';
 import DocumentNodeContent from './nodes/DocumentNode';
@@ -14,15 +14,18 @@ interface CanvasNodeProps {
   isConnecting: boolean;
 }
 
-const CanvasNode: React.FC<CanvasNodeProps> = ({ node, onNodeClick, isConnecting }) => {
-  const { updateNode, selectNode } = useCanvasStore();
+const CanvasNode: React.FC<CanvasNodeProps> = memo(({ node, onNodeClick, isConnecting }) => {
+  const updateNode = useCanvasStore((state) => state.updateNode);
+  const selectNode = useCanvasStore((state) => state.selectNode);
   const groupRef = useRef<any>(null);
   const isDragging = useRef(false);
+  const dragStartPos = useRef({ x: 0, y: 0 });
 
-  const handleDragStart = useCallback(() => {
+  const handleDragStart = useCallback((e: any) => {
     isDragging.current = true;
+    dragStartPos.current = { x: e.target.x(), y: e.target.y() };
     // Disable stage dragging when dragging a node
-    const stage = groupRef.current?.getStage();
+    const stage = e.target.getStage();
     if (stage) {
       stage.draggable(false);
     }
@@ -30,6 +33,7 @@ const CanvasNode: React.FC<CanvasNodeProps> = ({ node, onNodeClick, isConnecting
 
   const handleDragEnd = useCallback((e: any) => {
     isDragging.current = false;
+    const newPos = { x: e.target.x(), y: e.target.y() };
     
     // Re-enable stage dragging
     const stage = e.target.getStage();
@@ -39,12 +43,11 @@ const CanvasNode: React.FC<CanvasNodeProps> = ({ node, onNodeClick, isConnecting
       }, 50);
     }
     
-    updateNode(node.id, {
-      position: {
-        x: e.target.x(),
-        y: e.target.y(),
-      },
-    });
+    // Only update if position changed significantly (reduces unnecessary updates)
+    if (Math.abs(newPos.x - dragStartPos.current.x) > 2 || 
+        Math.abs(newPos.y - dragStartPos.current.y) > 2) {
+      updateNode(node.id, { position: newPos });
+    }
   }, [node.id, updateNode]);
 
   const handleClick = useCallback((e: any) => {
@@ -120,4 +123,4 @@ const CanvasNode: React.FC<CanvasNodeProps> = ({ node, onNodeClick, isConnecting
   );
 };
 
-export default CanvasNode;
+export default memo(CanvasNode);

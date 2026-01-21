@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { memo } from 'react';
 import { Text, Group, Rect, Circle, Image as KonvaImage } from 'react-konva';
 import type { DocumentNode } from '../../types';
 import useCanvasStore from '../../store/canvasStore';
@@ -168,4 +168,4 @@ const DocumentNodeContent: React.FC<DocumentNodeProps> = ({ node }) => {
   );
 };
 
-export default DocumentNodeContent;
+export default memo(DocumentNodeContent);

@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, memo } from 'react';
 import { Text, Group, Rect } from 'react-konva';
 import type { TextNode } from '../../types';
 import useCanvasStore from '../../store/canvasStore';
@@ -198,4 +198,4 @@ const TextNodeContent: React.FC<TextNodeProps> = ({ node }) => {
   );
 };
 
-export default TextNodeContent;
+export default memo(TextNodeContent);

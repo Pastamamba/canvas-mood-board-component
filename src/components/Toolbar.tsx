@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, memo } from 'react';
 import { 
   MousePointer, 
   Link, 
@@ -267,4 +267,4 @@ const Toolbar: React.FC = () => {
   );
 };
 
-export default Toolbar;
+export default memo(Toolbar);

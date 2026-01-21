@@ -27,12 +27,16 @@ const useCanvasStore = create<CanvasState & CanvasActions>((set, get) => ({
   },
 
   updateNode: (id, updates) => {
-    set((state) => ({
-      nodes: state.nodes.map((node) =>
-        node.id === id ? { ...node, ...updates } : node
-      ),
-    }));
-  },
+      set((state) => {
+        const nodeIndex = state.nodes.findIndex(node => node.id === id);
+        if (nodeIndex === -1) return state;
+        
+        // Create new array with updated node
+        const newNodes = [...state.nodes];
+        newNodes[nodeIndex] = { ...newNodes[nodeIndex], ...updates };
+        
+        return { nodes: newNodes };
+      });
 
   removeNode: (id) => {
     set((state) => ({

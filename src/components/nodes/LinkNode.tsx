@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, memo } from 'react';
 import { Text, Group, Rect, Image as KonvaImage } from 'react-konva';
 import type { LinkNode } from '../../types';
 import useCanvasStore from '../../store/canvasStore';
@@ -205,4 +205,4 @@ const Circle: React.FC<{
   />
 );
 
-export default LinkNodeContent;
+export default memo(LinkNodeContent);
