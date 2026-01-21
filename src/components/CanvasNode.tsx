@@ -24,28 +24,15 @@ const CanvasNode: React.FC<CanvasNodeProps> = ({ node, onNodeClick, isConnecting
   const handleDragStart = useCallback((e: any) => {
     isDragging.current = true;
     dragStartPos.current = { x: e.target.x(), y: e.target.y() };
-    // Disable stage dragging when dragging a node
-    const stage = e.target.getStage();
-    if (stage) {
-      stage.draggable(false);
-    }
   }, []);
 
   const handleDragEnd = useCallback((e: any) => {
     isDragging.current = false;
     const newPos = { x: e.target.x(), y: e.target.y() };
     
-    // Re-enable stage dragging
-    const stage = e.target.getStage();
-    if (stage) {
-      setTimeout(() => {
-        stage.draggable(true);
-      }, 50);
-    }
-    
     // Only update if position changed significantly (reduces unnecessary updates)
-    if (Math.abs(newPos.x - dragStartPos.current.x) > 2 || 
-        Math.abs(newPos.y - dragStartPos.current.y) > 2) {
+    if (Math.abs(newPos.x - dragStartPos.current.x) > 1 || 
+        Math.abs(newPos.y - dragStartPos.current.y) > 1) {
       updateNode(node.id, { position: newPos });
     }
   }, [node.id, updateNode]);
@@ -84,6 +71,7 @@ const CanvasNode: React.FC<CanvasNodeProps> = ({ node, onNodeClick, isConnecting
       onDragEnd={handleDragEnd}
       onClick={handleClick}
       onTap={handleClick}
+      perfectDrawEnabled={false}
     >
       {/* Selection highlight */}
       {(node.selected || isConnecting) && (
@@ -97,6 +85,8 @@ const CanvasNode: React.FC<CanvasNodeProps> = ({ node, onNodeClick, isConnecting
           fill="transparent"
           cornerRadius={10}
           dash={isConnecting ? [5, 5] : undefined}
+          perfectDrawEnabled={false}
+          listening={false}
         />
       )}
 
@@ -111,10 +101,11 @@ const CanvasNode: React.FC<CanvasNodeProps> = ({ node, onNodeClick, isConnecting
         strokeWidth={1}
         cornerRadius={8}
         shadowColor="black"
-        shadowBlur={4}
-        shadowOpacity={0.1}
+        shadowBlur={2}
+        shadowOpacity={0.08}
         shadowOffsetX={0}
-        shadowOffsetY={2}
+        shadowOffsetY={1}
+        perfectDrawEnabled={false}
       />
 
       {/* Node content */}
