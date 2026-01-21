@@ -22,8 +22,12 @@ const Canvas: React.FC = () => {
   const stageRef = useRef<any>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const connectingFrom = useRef<string | null>(null);
-  const [isStageBeingDragged, setIsStageBeingDragged] = useState(false);
   const zoomTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const isDragging = useRef(false);
+  const lastPointerPos = useRef({ x: 0, y: 0 });
+  const isDraggingCanvas = useRef(false);
+  const lastDragPos = useRef({ x: 0, y: 0 });
+  const dragStartOffset = useRef({ x: 0, y: 0 });
 
   // Canvas boundaries - finite canvas size
   const CANVAS_WIDTH = 3000;
@@ -33,22 +37,15 @@ const Canvas: React.FC = () => {
   useClipboard();
   useKeyboardShortcuts();
 
-  // Handle wheel zoom with throttling
+  // Handle wheel zoom with direct stage manipulation
   useEffect(() => {
     const handleWheel = (e: WheelEvent) => {
       e.preventDefault();
       
-      // Throttle zoom updates for better performance
-      if (zoomTimeoutRef.current) return;
-      
-      zoomTimeoutRef.current = setTimeout(() => {
-        zoomTimeoutRef.current = null;
-      }, 16); // ~60fps
-      
-      const scaleBy = 1.08;
       const stage = stageRef.current;
       if (!stage) return;
 
+      const scaleBy = 1.05;
       const oldScale = stage.scaleX();
       const pointer = stage.getPointerPosition();
 
@@ -61,21 +58,22 @@ const Canvas: React.FC = () => {
       const newScale = direction > 0 ? oldScale * scaleBy : oldScale / scaleBy;
       const clampedScale = Math.max(0.2, Math.min(2, newScale));
 
-      setZoom(clampedScale);
-
-      // Keep the zoom centered on mouse position
+      // Apply zoom directly to stage for immediate feedback
+      stage.scale({ x: clampedScale, y: clampedScale });
+      
       const newPos = {
         x: pointer.x - mousePointTo.x * clampedScale,
         y: pointer.y - mousePointTo.y * clampedScale,
       };
       
-      // Apply canvas boundaries
-      const boundedPos = {
-        x: Math.min(0, Math.max(window.innerWidth - CANVAS_WIDTH * clampedScale, newPos.x)),
-        y: Math.min(0, Math.max(window.innerHeight - CANVAS_HEIGHT * clampedScale, newPos.y)),
-      };
+      stage.position(newPos);
       
-      setPanOffset(boundedPos);
+      // Update state less frequently
+      if (zoomTimeoutRef.current) clearTimeout(zoomTimeoutRef.current);
+      zoomTimeoutRef.current = setTimeout(() => {
+        setZoom(clampedScale);
+        setPanOffset(newPos);
+      }, 100);
     };
 
     const container = containerRef.current;
@@ -86,29 +84,12 @@ const Canvas: React.FC = () => {
   }, [setZoom, setPanOffset, CANVAS_WIDTH, CANVAS_HEIGHT]);
 
   const handleStageClick = useCallback((e: any) => {
-    // Only clear selection if we didn't drag the stage
-    if (e.target === e.target.getStage() && !isStageBeingDragged) {
+    // Check if we clicked on empty space (stage background)
+    if (e.target === e.target.getStage()) {
       clearSelection();
       connectingFrom.current = null;
     }
-  }, [clearSelection, isStageBeingDragged]);
-
-  const handleStageDragStart = useCallback(() => {
-    setIsStageBeingDragged(true);
-  }, []);
-
-  const handleStageDragEnd = useCallback((e: any) => {
-    // Apply boundaries when dragging ends
-    const newX = Math.min(0, Math.max(window.innerWidth - CANVAS_WIDTH * zoom, e.target.x()));
-    const newY = Math.min(0, Math.max(window.innerHeight - CANVAS_HEIGHT * zoom, e.target.y()));
-    
-    setPanOffset({ x: newX, y: newY });
-    
-    // Reset drag state after a small delay to prevent immediate clicks
-    setTimeout(() => {
-      setIsStageBeingDragged(false);
-    }, 100);
-  }, [setPanOffset, zoom, CANVAS_WIDTH, CANVAS_HEIGHT]);
+  }, [clearSelection]);
 
   const handleNodeClick = useCallback((nodeId: string, event: any) => {
     event.cancelBubble = true;
@@ -164,9 +145,7 @@ const Canvas: React.FC = () => {
         y={panOffset.y}
         onClick={handleStageClick}
         onTap={handleStageClick}
-        onDragStart={handleStageDragStart}
-        onDragEnd={handleStageDragEnd}
-        draggable={true}
+        draggable={false}
       >
         <Layer>
           {/* Canvas background with visible boundaries */}

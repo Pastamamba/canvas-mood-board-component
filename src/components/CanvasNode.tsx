@@ -14,7 +14,7 @@ interface CanvasNodeProps {
   isConnecting: boolean;
 }
 
-const CanvasNode: React.FC<CanvasNodeProps> = memo(({ node, onNodeClick, isConnecting }) => {
+const CanvasNode: React.FC<CanvasNodeProps> = ({ node, onNodeClick, isConnecting }) => {
   const updateNode = useCanvasStore((state) => state.updateNode);
   const selectNode = useCanvasStore((state) => state.selectNode);
   const groupRef = useRef<any>(null);

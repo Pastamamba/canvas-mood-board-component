@@ -37,8 +37,9 @@ const useCanvasStore = create<CanvasState & CanvasActions>((set, get) => ({
         
         return { nodes: newNodes };
       });
+    },
 
-  removeNode: (id) => {
+    removeNode: (id) => {
     set((state) => ({
       nodes: state.nodes.filter((node) => node.id !== id),
       connections: state.connections.filter(
