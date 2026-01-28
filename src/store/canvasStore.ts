@@ -1,8 +1,19 @@
 import { create } from 'zustand';
+import { subscribeWithSelector } from 'zustand/middleware';
 import { v4 as uuidv4 } from 'uuid';
 import type { CanvasState, CanvasActions, CanvasNode, Connection, Position } from '../types';
 
-const useCanvasStore = create<CanvasState & CanvasActions>((set, get) => ({
+// Memoized selectors for better performance
+const createSelectors = <T extends Record<string, any>>(store: T) => {
+  const selectors = {} as { [K in keyof T]: () => T[K] };
+  Object.keys(store.getState()).forEach((key) => {
+    selectors[key as keyof T] = () => store.getState()[key as keyof T];
+  });
+  return selectors;
+};
+
+const useCanvasStore = create<CanvasState & CanvasActions>()(
+  subscribeWithSelector((set, get) => ({
   // Initial state
   nodes: [],
   edges: [],  // Changed from connections to edges
@@ -26,17 +37,24 @@ const useCanvasStore = create<CanvasState & CanvasActions>((set, get) => ({
   },
 
   updateNode: (id, updates) => {
-      set((state) => {
-        const nodeIndex = state.nodes.findIndex(node => node.id === id);
-        if (nodeIndex === -1) return state;
-        
-        // Create new array with updated node
-        const newNodes = [...state.nodes];
-        newNodes[nodeIndex] = { ...newNodes[nodeIndex], ...updates };
-        
-        return { nodes: newNodes };
-      });
-    },
+    set((state) => {
+      const nodeIndex = state.nodes.findIndex(node => node.id === id);
+      if (nodeIndex === -1) return state;
+      
+      // Only update if there are actual changes to prevent unnecessary re-renders
+      const currentNode = state.nodes[nodeIndex];
+      const hasChanges = Object.keys(updates).some(key => 
+        JSON.stringify(currentNode[key]) !== JSON.stringify(updates[key])
+      );
+      
+      if (!hasChanges) return state;
+      
+      const newNodes = [...state.nodes];
+      newNodes[nodeIndex] = { ...newNodes[nodeIndex], ...updates };
+      
+      return { nodes: newNodes };
+    });
+  },
 
     removeNode: (id) => {
     set((state) => ({
@@ -185,6 +203,14 @@ const useCanvasStore = create<CanvasState & CanvasActions>((set, get) => ({
       ...newState,
     }));
   },
-}));
+})));
+
+// Create performance-optimized selectors
+export const useCanvasSelectors = () => ({
+  nodes: useCanvasStore((state) => state.nodes),
+  edges: useCanvasStore((state) => state.edges),
+  selectedNodeIds: useCanvasStore((state) => state.selectedNodeIds),
+  mode: useCanvasStore((state) => state.mode),
+});
 
 export default useCanvasStore;

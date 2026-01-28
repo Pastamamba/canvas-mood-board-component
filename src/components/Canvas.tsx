@@ -13,9 +13,11 @@ import {
   OnNodesChange,
   OnEdgesChange,
   OnConnect,
+  BackgroundVariant,
+  SelectionMode,
 } from '@xyflow/react';
 import '@xyflow/react/dist/style.css';
-import useCanvasStore from '../store/canvasStore';
+import useCanvasStore, { useCanvasSelectors } from '../store/canvasStore';
 import { useClipboard, useKeyboardShortcuts } from '../hooks/useCanvasInteraction';
 import Toolbar from './Toolbar';
 import DocumentNode from './nodes/DocumentNode';
@@ -23,6 +25,7 @@ import LinkNode from './nodes/LinkNode';
 import VideoNode from './nodes/VideoNode';
 import SketchNode from './nodes/SketchNode';
 import TextNode from './nodes/TextNode';
+import LoadingSpinner from './LoadingSpinner';
 import type { CanvasNode as CanvasNodeType } from '../types';
 
 // Define custom node types for React Flow
@@ -35,10 +38,8 @@ const nodeTypes = {
 };
 
 const Canvas: React.FC = () => {
-  // Store subscriptions
-  const nodes = useCanvasStore((state) => state.nodes);
-  const edges = useCanvasStore((state) => state.edges);
-  const mode = useCanvasStore((state) => state.mode);
+  // Use optimized selectors
+  const { nodes, edges, mode } = useCanvasSelectors();
   const updateNode = useCanvasStore((state) => state.updateNode);
   const addCanvasEdge = useCanvasStore((state) => state.addEdge);
   const clearSelection = useCanvasStore((state) => state.clearSelection);
@@ -47,7 +48,7 @@ const Canvas: React.FC = () => {
   useClipboard();
   useKeyboardShortcuts();
 
-  // Convert store nodes/edges to React Flow format
+  // Performance optimized React Flow nodes conversion
   const reactFlowNodes = useMemo(() => 
     nodes.map(node => ({
       ...node,
@@ -55,14 +56,24 @@ const Canvas: React.FC = () => {
       position: node.position,
       data: node.data,
       selected: node.selected,
+      dragHandle: '.node-header', // Only allow dragging from header
     }))
   , [nodes]);
 
+  // Performance optimized edges conversion  
   const reactFlowEdges = useMemo(() => 
     edges.map(edge => ({
       ...edge,
       type: 'smoothstep',
       animated: true,
+      style: { 
+        strokeWidth: 2,
+        stroke: '#3b82f6',
+      },
+      markerEnd: {
+        type: 'arrowclosed',
+        color: '#3b82f6',
+      },
     }))
   , [edges]);
 
@@ -124,19 +135,52 @@ const Canvas: React.FC = () => {
         onPaneClick={handlePaneClick}
         nodeTypes={nodeTypes}
         connectionMode={ConnectionMode.Loose}
+        selectionMode={SelectionMode.Partial}
         fitView
         attributionPosition="bottom-left"
         className="react-flow-canvas"
+        minZoom={0.1}
+        maxZoom={4}
+        defaultViewport={{ x: 0, y: 0, zoom: 1 }}
+        deleteKeyCode={['Backspace', 'Delete']}
+        multiSelectionKeyCode={['Meta', 'Shift']}
+        panOnScroll={false}
+        panOnScrollMode="free"
+        panOnScrollSpeed={0.5}
+        zoomOnScroll={true}
+        zoomOnDoubleClick={true}
+        zoomOnPinch={true}
+        preventScrolling
+        elevateEdgesOnSelect
+        nodesDraggable
+        nodesConnectable
+        elementsSelectable
+        selectNodesOnDrag={false}
       >
-        <Background />
-        <Controls />
+        <Background 
+          variant={BackgroundVariant.Dots} 
+          gap={20} 
+          size={1}
+          color="#e5e7eb"
+        />
+        <Controls 
+          showZoom={true}
+          showFitView={true}
+          showInteractive={true}
+          position="bottom-right"
+        />
         <MiniMap
-          nodeStrokeColor="#333"
-          nodeColor="#fff"
+          nodeStrokeColor="#6b7280"
+          nodeColor="#f3f4f6"
           nodeBorderRadius={8}
+          maskColor="rgba(255, 255, 255, 0.2)"
           style={{
-            backgroundColor: 'rgba(255, 255, 255, 0.8)',
+            backgroundColor: 'rgba(255, 255, 255, 0.9)',
+            border: '1px solid #e5e7eb',
+            borderRadius: '8px',
           }}
+          zoomable
+          pannable
         />
       </ReactFlow>
     </div>
