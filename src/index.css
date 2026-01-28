@@ -26,6 +26,21 @@ body {
   background-color: #e9ecef;
   cursor: grab;
   overflow: hidden;
+  touch-action: none;
+  -webkit-overflow-scrolling: touch;
+}
+
+.react-flow-canvas {
+  touch-action: none !important;
+  overflow: hidden !important;
+}
+
+.react-flow__pane {
+  touch-action: none !important;
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
 }
 
 .canvas-container:active {

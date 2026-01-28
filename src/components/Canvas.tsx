@@ -19,6 +19,7 @@ import {
 import '@xyflow/react/dist/style.css';
 import useCanvasStore, { useCanvasSelectors } from '../store/canvasStore';
 import { useClipboard, useKeyboardShortcuts } from '../hooks/useCanvasInteraction';
+import { useScrollPrevention } from '../hooks/useZoomFix';
 import Toolbar from './Toolbar';
 import DocumentNode from './nodes/DocumentNode';
 import LinkNode from './nodes/LinkNode';
@@ -47,6 +48,7 @@ const Canvas: React.FC = () => {
   // Custom hooks
   useClipboard();
   useKeyboardShortcuts();
+  useScrollPrevention(); // Prevent scroll conflicts
 
   // Performance optimized React Flow nodes conversion
   const reactFlowNodes = useMemo(() => 
@@ -139,8 +141,8 @@ const Canvas: React.FC = () => {
         fitView
         attributionPosition="bottom-left"
         className="react-flow-canvas"
-        minZoom={0.1}
-        maxZoom={4}
+        minZoom={0.2}
+        maxZoom={3}
         defaultViewport={{ x: 0, y: 0, zoom: 1 }}
         deleteKeyCode={['Backspace', 'Delete']}
         multiSelectionKeyCode={['Meta', 'Shift']}
@@ -150,7 +152,9 @@ const Canvas: React.FC = () => {
         zoomOnScroll={true}
         zoomOnDoubleClick={true}
         zoomOnPinch={true}
-        preventScrolling
+        zoomActivationKeyCode={null}
+        preventScrolling={true}
+        zoomOnScrollSpeed={0.3}
         elevateEdgesOnSelect
         nodesDraggable
         nodesConnectable
