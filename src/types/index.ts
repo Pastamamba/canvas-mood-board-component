@@ -1,3 +1,5 @@
+import { Node as FlowNode, Edge as FlowEdge } from '@xyflow/react';
+
 export interface Position {
   x: number;
   y: number;
@@ -8,21 +10,25 @@ export interface Size {
   height: number;
 }
 
-export interface Connection {
-  id: string;
-  fromNodeId: string;
-  toNodeId: string;
-}
-
 export type NodeType = 'document' | 'link' | 'video' | 'sketch' | 'text';
 
-export interface BaseNode {
+// React Flow compatible node interface
+export interface BaseNode extends FlowNode {
   id: string;
   type: NodeType;
   position: Position;
-  size: Size;
-  selected: boolean;
-  zIndex: number;
+  data: any;
+  selected?: boolean;
+  width?: number;
+  height?: number;
+}
+
+export interface Connection extends FlowEdge {
+  id: string;
+  source: string;
+  target: string;
+  sourceHandle?: string;
+  targetHandle?: string;
 }
 
 export interface DocumentNodeData {
@@ -102,10 +108,8 @@ export type CanvasNode = DocumentNode | LinkNode | VideoNode | SketchNode | Text
 
 export interface CanvasState {
   nodes: CanvasNode[];
-  connections: Connection[];
+  edges: Connection[];  // Changed from connections to edges (React Flow standard)
   selectedNodeIds: string[];
-  zoom: number;
-  panOffset: Position;
   mode: 'select' | 'connect' | 'draw';
   clipboard: {
     type: 'text' | 'url' | null;
@@ -115,19 +119,17 @@ export interface CanvasState {
 
 export interface CanvasActions {
   // Node operations
-  addNode: (node: Omit<CanvasNode, 'id' | 'zIndex'>) => void;
+  addNode: (node: Omit<CanvasNode, 'id'>) => void;
   updateNode: (id: string, updates: Partial<CanvasNode>) => void;
   removeNode: (id: string) => void;
   selectNode: (id: string, multiSelect?: boolean) => void;
   clearSelection: () => void;
   
-  // Connection operations
-  addConnection: (fromNodeId: string, toNodeId: string) => void;
-  removeConnection: (id: string) => void;
+  // Edge operations (connections)
+  addEdge: (fromNodeId: string, toNodeId: string) => void;
+  removeEdge: (id: string) => void;
   
-  // Canvas operations
-  setZoom: (zoom: number) => void;
-  setPanOffset: (offset: Position) => void;
+  // Mode operations
   setMode: (mode: CanvasState['mode']) => void;
   
   // Clipboard operations

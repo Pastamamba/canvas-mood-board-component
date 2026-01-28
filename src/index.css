@@ -218,3 +218,350 @@ body {
   height: 200px;
   border-radius: 4px;
 }
+
+/* React Flow Node Styles */
+
+/* Base node styling */
+.react-flow__node {
+  background: white;
+  border: 2px solid #ddd;
+  border-radius: 8px;
+  font-family: inherit;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.react-flow__node.selected {
+  border-color: #007bff !important;
+  box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.25) !important;
+}
+
+/* Node headers */
+.node-header {
+  padding: 8px 12px;
+  font-size: 11px;
+  font-weight: bold;
+  color: white;
+  border-radius: 6px 6px 0 0;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.document-header {
+  background: #28a745;
+}
+
+.text-header {
+  background: #6c757d;
+}
+
+.link-header {
+  background: #17a2b8;
+}
+
+.video-header {
+  background: #dc3545;
+}
+
+.sketch-header {
+  background: #fd7e14;
+}
+
+/* Node content */
+.node-content {
+  padding: 12px;
+}
+
+/* Document Node */
+.document-node {
+  min-width: 300px;
+  min-height: 200px;
+}
+
+.document-title {
+  width: 100%;
+  border: none;
+  font-size: 16px;
+  font-weight: 600;
+  margin-bottom: 8px;
+  padding: 4px 0;
+  background: transparent;
+  outline: none;
+}
+
+.document-content {
+  width: 100%;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  padding: 8px;
+  resize: none;
+  font-size: 14px;
+  font-family: inherit;
+  outline: none;
+}
+
+.document-categories {
+  margin-top: 8px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+
+.category-tag {
+  background: #e9ecef;
+  padding: 2px 6px;
+  border-radius: 12px;
+  font-size: 10px;
+  color: #495057;
+}
+
+.document-actors {
+  margin-top: 8px;
+}
+
+.actors-header {
+  font-size: 12px;
+  font-weight: 600;
+  margin-bottom: 4px;
+}
+
+.actor-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 4px;
+}
+
+.actor-avatar {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+}
+
+.actor-name {
+  font-size: 12px;
+}
+
+.document-attachments {
+  margin-top: 8px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.attachment-item {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.attachment-thumbnail {
+  width: 24px;
+  height: 24px;
+  object-fit: cover;
+  border-radius: 4px;
+}
+
+.attachment-name {
+  font-size: 11px;
+}
+
+/* Text Node */
+.text-node {
+  min-width: 250px;
+  min-height: 150px;
+}
+
+.markdown-toggle {
+  background: rgba(255, 255, 255, 0.2);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  color: white;
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-size: 10px;
+  cursor: pointer;
+}
+
+.markdown-toggle.active {
+  background: rgba(255, 255, 255, 0.3);
+}
+
+.text-editor {
+  width: 100%;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  padding: 8px;
+  resize: none;
+  font-size: 14px;
+  font-family: inherit;
+  outline: none;
+}
+
+.text-display {
+  min-height: 80px;
+}
+
+.text-content {
+  white-space: pre-wrap;
+  font-family: inherit;
+  font-size: 14px;
+  line-height: 1.4;
+}
+
+/* Link Node */
+.link-node {
+  min-width: 250px;
+  min-height: 150px;
+}
+
+.link-url-input {
+  width: 100%;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  padding: 8px;
+  font-size: 14px;
+  margin-bottom: 8px;
+  outline: none;
+}
+
+.open-link-button {
+  background: rgba(255, 255, 255, 0.2);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  color: white;
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-size: 12px;
+  cursor: pointer;
+}
+
+.loading-indicator {
+  font-size: 12px;
+  color: #6c757d;
+  padding: 8px 0;
+}
+
+.link-image img {
+  width: 100%;
+  max-height: 120px;
+  object-fit: cover;
+  border-radius: 4px;
+  margin-bottom: 8px;
+}
+
+.link-title {
+  font-size: 14px;
+  font-weight: 600;
+  margin: 0 0 4px 0;
+  line-height: 1.3;
+}
+
+.link-description {
+  font-size: 12px;
+  color: #6c757d;
+  line-height: 1.4;
+  margin: 0 0 8px 0;
+}
+
+.link-site-name {
+  font-size: 11px;
+  color: #868e96;
+  font-style: italic;
+}
+
+/* Video Node */
+.video-node {
+  min-width: 320px;
+  min-height: 240px;
+}
+
+.video-url-input, .video-title-input {
+  width: 100%;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  padding: 8px;
+  font-size: 14px;
+  margin-bottom: 8px;
+  outline: none;
+}
+
+.preview-toggle {
+  background: rgba(255, 255, 255, 0.2);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  color: white;
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-size: 12px;
+  cursor: pointer;
+}
+
+.video-thumbnail {
+  position: relative;
+  margin-bottom: 8px;
+}
+
+.video-thumbnail img {
+  width: 100%;
+  height: 150px;
+  object-fit: cover;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.play-overlay {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background: rgba(0, 0, 0, 0.7);
+  color: white;
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 20px;
+  cursor: pointer;
+}
+
+.video-preview iframe {
+  width: 100%;
+  height: 200px;
+  border-radius: 4px;
+}
+
+/* Sketch Node */
+.sketch-node {
+  min-width: 300px;
+  min-height: 250px;
+}
+
+.clear-button {
+  background: rgba(255, 255, 255, 0.2);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  color: white;
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-size: 12px;
+  cursor: pointer;
+}
+
+.sketch-canvas {
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  cursor: crosshair;
+  background: white;
+}
+
+/* React Flow custom styles */
+.react-flow-canvas {
+  background-color: #f8f9fa;
+}
+
+.react-flow__controls {
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+}
+
+.react-flow__minimap {
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+}

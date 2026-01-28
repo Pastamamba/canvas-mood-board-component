@@ -1,28 +1,26 @@
 import React, { useEffect, useState, memo } from 'react';
-import { Text, Group, Rect, Image as KonvaImage } from 'react-konva';
-import type { LinkNode } from '../../types';
+import { Handle, Position, NodeProps } from '@xyflow/react';
+import type { LinkNode as LinkNodeType } from '../../types';
 import useCanvasStore from '../../store/canvasStore';
 import { fetchOpenGraphData, isValidUrl } from '../../utils';
-import useImage from 'use-image';
 
-interface LinkNodeProps {
-  node: LinkNode;
-}
-
-const LinkNodeContent: React.FC<LinkNodeProps> = ({ node }) => {
+const LinkNode: React.FC<NodeProps<LinkNodeType['data']>> = ({ 
+  data, 
+  selected,
+  id
+}) => {
   const { updateNode } = useCanvasStore();
   const [isLoading, setIsLoading] = useState(false);
-  const [thumbnailImage] = useImage(node.data.image || '', 'anonymous');
 
   useEffect(() => {
     // Auto-fetch OpenGraph data if URL is provided but no title/description
-    if (node.data.url && isValidUrl(node.data.url) && !node.data.title && !isLoading) {
+    if (data.url && isValidUrl(data.url) && !data.title && !isLoading) {
       setIsLoading(true);
-      fetchOpenGraphData(node.data.url)
+      fetchOpenGraphData(data.url)
         .then((ogData) => {
-          updateNode(node.id, {
+          updateNode(id, {
             data: {
-              ...node.data,
+              ...data,
               title: ogData.title,
               description: ogData.description,
               image: ogData.image,
@@ -37,13 +35,13 @@ const LinkNodeContent: React.FC<LinkNodeProps> = ({ node }) => {
           setIsLoading(false);
         });
     }
-  }, [node.data.url, node.data.title, node.id, updateNode, isLoading]);
+  }, [data.url, data.title, id, updateNode, isLoading, data]);
 
-  const handleUrlChange = (newUrl: string) => {
-    updateNode(node.id, {
+  const handleUrlChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    updateNode(id, {
       data: {
-        ...node.data,
-        url: newUrl,
+        ...data,
+        url: event.target.value,
         // Reset other fields when URL changes
         title: undefined,
         description: undefined,
@@ -53,156 +51,70 @@ const LinkNodeContent: React.FC<LinkNodeProps> = ({ node }) => {
     });
   };
 
-  const displayUrl = node.data.url || 'Enter URL...';
-  const displayTitle = node.data.title || (node.data.url ? 'Loading...' : 'No URL provided');
-  const displayDescription = node.data.description || '';
+  const handleOpenLink = () => {
+    if (data.url && isValidUrl(data.url)) {
+      window.open(data.url, '_blank');
+    }
+  };
 
   return (
-    <Group>
-      {/* Header */}
-      <Rect
-        x={8}
-        y={8}
-        width={node.size.width - 16}
-        height={24}
-        fill="#007bff"
-        cornerRadius={4}
+    <div className={`link-node ${selected ? 'selected' : ''}`}>
+      {/* Connection handles */}
+      <Handle
+        type="target"
+        position={Position.Left}
+        style={{ background: '#555' }}
+      />
+      <Handle
+        type="source"
+        position={Position.Right}
+        style={{ background: '#555' }}
       />
       
-      <Text
-        x={12}
-        y={14}
-        text="LINK"
-        fontSize={10}
-        fontStyle="bold"
-        fill="white"
-      />
-
-      {/* Thumbnail */}
-      {thumbnailImage && (
-        <KonvaImage
-          x={12}
-          y={40}
-          width={node.size.width - 24}
-          height={60}
-          image={thumbnailImage}
-          cornerRadius={4}
-        />
-      )}
-
+      {/* Header */}
+      <div className="node-header link-header">
+        <span className="node-type">LINK</span>
+        {data.url && isValidUrl(data.url) && (
+          <button onClick={handleOpenLink} className="open-link-button" title="Open link">
+            ↗
+          </button>
+        )}
+      </div>
+      
       {/* Content */}
-      <Group y={thumbnailImage ? 108 : 40}>
-        {/* Title */}
-        <Text
-          x={12}
-          y={0}
-          text={displayTitle}
-          fontSize={13}
-          fontStyle="bold"
-          fill="#333"
-          width={node.size.width - 24}
-          wrap="word"
+      <div className="node-content">
+        <input
+          type="url"
+          value={data.url}
+          onChange={handleUrlChange}
+          className="link-url-input"
+          placeholder="Enter URL..."
         />
-
-        {/* Description */}
-        {displayDescription && (
-          <Text
-            x={12}
-            y={18}
-            text={displayDescription.length > 80 ? 
-              displayDescription.substring(0, 80) + '...' : 
-              displayDescription
-            }
-            fontSize={11}
-            fill="#666"
-            width={node.size.width - 24}
-            wrap="word"
-          />
+        
+        {isLoading && (
+          <div className="loading-indicator">Loading...</div>
         )}
-
-        {/* URL */}
-        <Text
-          x={12}
-          y={displayDescription ? 40 : 18}
-          text={displayUrl.length > 35 ? 
-            displayUrl.substring(0, 35) + '...' : 
-            displayUrl
-          }
-          fontSize={10}
-          fill="#007bff"
-          width={node.size.width - 24}
-        />
-
-        {/* Site name */}
-        {node.data.siteName && (
-          <Text
-            x={12}
-            y={displayDescription ? 55 : 33}
-            text={node.data.siteName}
-            fontSize={9}
-            fill="#6c757d"
-            width={node.size.width - 24}
-          />
+        
+        {data.image && (
+          <div className="link-image">
+            <img src={data.image} alt={data.title || 'Link preview'} />
+          </div>
         )}
-      </Group>
-
-      {/* Loading indicator */}
-      {isLoading && (
-        <Group x={node.size.width - 30} y={12}>
-          <Circle
-            x={0}
-            y={0}
-            radius={6}
-            fill="#ffc107"
-          />
-          <Text
-            x={-2}
-            y={-3}
-            text="..."
-            fontSize={8}
-            fill="white"
-          />
-        </Group>
-      )}
-
-      {/* External link icon */}
-      <Group x={node.size.width - 25} y={node.size.height - 20}>
-        <Rect
-          x={0}
-          y={0}
-          width={12}
-          height={12}
-          stroke="#007bff"
-          strokeWidth={1}
-          cornerRadius={2}
-        />
-        <Text
-          x={2}
-          y={2}
-          text="↗"
-          fontSize={8}
-          fill="#007bff"
-        />
-      </Group>
-    </Group>
+        
+        {data.title && (
+          <h3 className="link-title">{data.title}</h3>
+        )}
+        
+        {data.description && (
+          <p className="link-description">{data.description}</p>
+        )}
+        
+        {data.siteName && (
+          <span className="link-site-name">{data.siteName}</span>
+        )}
+      </div>
+    </div>
   );
 };
 
-// Simple Circle component since we need it
-const Circle: React.FC<{
-  x: number;
-  y: number;
-  radius: number;
-  fill: string;
-}> = ({ x, y, radius, fill }) => (
-  <Rect
-    x={x - radius}
-    y={y - radius}
-    width={radius * 2}
-    height={radius * 2}
-    fill={fill}
-    cornerRadius={radius}
-  />
-);
-
-export default memo(LinkNodeContent);
+export default memo(LinkNode);

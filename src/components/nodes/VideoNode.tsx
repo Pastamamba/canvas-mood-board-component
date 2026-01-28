@@ -1,6 +1,6 @@
-import React, { useMemo, memo } from 'react';
-import { Text, Group, Rect, Image as KonvaImage } from 'react-konva';
-import type { VideoNode } from '../../types';
+import React, { useMemo, memo, useState } from 'react';
+import { Handle, Position, NodeProps } from '@xyflow/react';
+import type { VideoNode as VideoNodeType } from '../../types';
 import useCanvasStore from '../../store/canvasStore';
 import { 
   getYouTubeVideoId, 
@@ -9,19 +9,19 @@ import {
   getYouTubeEmbedUrl,
   getVimeoEmbedUrl 
 } from '../../utils';
-import useImage from 'use-image';
 
-interface VideoNodeProps {
-  node: VideoNode;
-}
-
-const VideoNodeContent: React.FC<VideoNodeProps> = ({ node }) => {
+const VideoNode: React.FC<NodeProps<VideoNodeType['data']>> = ({ 
+  data, 
+  selected,
+  id
+}) => {
   const { updateNode } = useCanvasStore();
+  const [showPreview, setShowPreview] = useState(false);
 
   const videoData = useMemo(() => {
-    if (!node.data.url) return null;
+    if (!data.url) return null;
 
-    const youtubeId = getYouTubeVideoId(node.data.url);
+    const youtubeId = getYouTubeVideoId(data.url);
     if (youtubeId) {
       return {
         id: youtubeId,
@@ -31,7 +31,7 @@ const VideoNodeContent: React.FC<VideoNodeProps> = ({ node }) => {
       };
     }
 
-    const vimeoId = getVimeoVideoId(node.data.url);
+    const vimeoId = getVimeoVideoId(data.url);
     if (vimeoId) {
       return {
         id: vimeoId,
@@ -45,213 +45,100 @@ const VideoNodeContent: React.FC<VideoNodeProps> = ({ node }) => {
       id: null,
       type: 'iframe' as const,
       thumbnail: null,
-      embedUrl: node.data.url,
+      embedUrl: data.url,
     };
-  }, [node.data.url]);
+  }, [data.url]);
 
-  const [thumbnailImage] = useImage(
-    videoData?.thumbnail || node.data.thumbnail || '', 
-    'anonymous'
-  );
-
-  const handleUrlChange = (newUrl: string) => {
-    updateNode(node.id, {
+  const handleUrlChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    updateNode(id, {
       data: {
-        ...node.data,
-        url: newUrl,
-        title: undefined, // Reset title when URL changes
+        ...data,
+        url: event.target.value,
       },
     });
   };
 
-  const displayTitle = node.data.title || 
-    (videoData?.id ? `${videoData.type.toUpperCase()} Video` : 'Video Content');
+  const handleTitleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    updateNode(id, {
+      data: {
+        ...data,
+        title: event.target.value,
+      },
+    });
+  };
+
+  const togglePreview = () => {
+    setShowPreview(!showPreview);
+  };
 
   return (
-    <Group>
-      {/* Header */}
-      <Rect
-        x={8}
-        y={8}
-        width={node.size.width - 16}
-        height={24}
-        fill="#dc3545"
-        cornerRadius={4}
+    <div className={`video-node ${selected ? 'selected' : ''}`}>
+      {/* Connection handles */}
+      <Handle
+        type="target"
+        position={Position.Left}
+        style={{ background: '#555' }}
+      />
+      <Handle
+        type="source"
+        position={Position.Right}
+        style={{ background: '#555' }}
       />
       
-      <Text
-        x={12}
-        y={14}
-        text="VIDEO"
-        fontSize={10}
-        fontStyle="bold"
-        fill="white"
-      />
-
-      {/* Video platform indicator */}
-      {videoData?.type && videoData.type !== 'iframe' && (
-        <Text
-          x={node.size.width - 60}
-          y={14}
-          text={videoData.type.toUpperCase()}
-          fontSize={8}
-          fill="white"
-          fontStyle="bold"
+      {/* Header */}
+      <div className="node-header video-header">
+        <span className="node-type">VIDEO</span>
+        <button onClick={togglePreview} className="preview-toggle">
+          {showPreview ? '📺' : '👁'}
+        </button>
+      </div>
+      
+      {/* Content */}
+      <div className="node-content">
+        <input
+          type="url"
+          value={data.url}
+          onChange={handleUrlChange}
+          className="video-url-input"
+          placeholder="Enter video URL..."
         />
-      )}
-
-      {/* Thumbnail/Preview area */}
-      <Group y={40}>
-        {thumbnailImage ? (
-          <KonvaImage
-            x={12}
-            y={0}
-            width={node.size.width - 24}
-            height={(node.size.width - 24) * 9 / 16} // 16:9 aspect ratio
-            image={thumbnailImage}
-            cornerRadius={4}
-          />
-        ) : (
-          <Group>
-            <Rect
-              x={12}
-              y={0}
-              width={node.size.width - 24}
-              height={(node.size.width - 24) * 9 / 16}
-              fill="#f8f9fa"
-              stroke="#dee2e6"
-              strokeWidth={1}
-              cornerRadius={4}
+        
+        <input
+          type="text"
+          value={data.title || ''}
+          onChange={handleTitleChange}
+          className="video-title-input"
+          placeholder="Video title..."
+        />
+        
+        {videoData?.thumbnail && !showPreview && (
+          <div className="video-thumbnail">
+            <img 
+              src={videoData.thumbnail} 
+              alt={data.title || 'Video thumbnail'} 
+              onClick={togglePreview}
+              style={{ cursor: 'pointer' }}
             />
-            
-            {/* Play button placeholder */}
-            <Group 
-              x={12 + (node.size.width - 24) / 2} 
-              y={(node.size.width - 24) * 9 / 32}
-            >
-              <Circle
-                x={0}
-                y={0}
-                radius={20}
-                fill="rgba(0, 0, 0, 0.7)"
-              />
-              
-              {/* Play triangle */}
-              <Text
-                x={-6}
-                y={-8}
-                text="▶"
-                fontSize={16}
-                fill="white"
-              />
-            </Group>
-          </Group>
+            <div className="play-overlay" onClick={togglePreview}>
+              ▶
+            </div>
+          </div>
         )}
-
-        {/* Play button overlay */}
-        {thumbnailImage && (
-          <Group 
-            x={12 + (node.size.width - 24) / 2} 
-            y={(node.size.width - 24) * 9 / 32}
-          >
-            <Circle
-              x={0}
-              y={0}
-              radius={16}
-              fill="rgba(0, 0, 0, 0.8)"
+        
+        {showPreview && videoData?.embedUrl && (
+          <div className="video-preview">
+            <iframe
+              src={videoData.embedUrl}
+              title={data.title || 'Video'}
+              frameBorder="0"
+              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+              allowFullScreen
             />
-            
-            <Text
-              x={-5}
-              y={-6}
-              text="▶"
-              fontSize={12}
-              fill="white"
-            />
-          </Group>
+          </div>
         )}
-      </Group>
-
-      {/* Content info */}
-      <Group y={40 + (node.size.width - 24) * 9 / 16 + 8}>
-        {/* Title */}
-        <Text
-          x={12}
-          y={0}
-          text={displayTitle}
-          fontSize={13}
-          fontStyle="bold"
-          fill="#333"
-          width={node.size.width - 24}
-          wrap="word"
-        />
-
-        {/* URL */}
-        <Text
-          x={12}
-          y={18}
-          text={node.data.url ? 
-            (node.data.url.length > 40 ? 
-              node.data.url.substring(0, 40) + '...' : 
-              node.data.url
-            ) : 
-            'Enter video URL...'
-          }
-          fontSize={10}
-          fill="#007bff"
-          width={node.size.width - 24}
-        />
-
-        {/* Video ID for YouTube/Vimeo */}
-        {videoData?.id && (
-          <Text
-            x={12}
-            y={32}
-            text={`ID: ${videoData.id}`}
-            fontSize={9}
-            fill="#6c757d"
-            width={node.size.width - 24}
-          />
-        )}
-      </Group>
-
-      {/* Embed indicator */}
-      <Group x={node.size.width - 20} y={node.size.height - 20}>
-        <Rect
-          x={0}
-          y={0}
-          width={12}
-          height={12}
-          fill="#dc3545"
-          cornerRadius={2}
-        />
-        <Text
-          x={2}
-          y={2}
-          text="▶"
-          fontSize={8}
-          fill="white"
-        />
-      </Group>
-    </Group>
+      </div>
+    </div>
   );
 };
 
-// Simple Circle component
-const Circle: React.FC<{
-  x: number;
-  y: number;
-  radius: number;
-  fill: string;
-}> = ({ x, y, radius, fill }) => (
-  <Rect
-    x={x - radius}
-    y={y - radius}
-    width={radius * 2}
-    height={radius * 2}
-    fill={fill}
-    cornerRadius={radius}
-  />
-);
-
-export default memo(VideoNodeContent);
+export default memo(VideoNode);

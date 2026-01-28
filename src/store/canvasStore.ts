@@ -5,10 +5,8 @@ import type { CanvasState, CanvasActions, CanvasNode, Connection, Position } fro
 const useCanvasStore = create<CanvasState & CanvasActions>((set, get) => ({
   // Initial state
   nodes: [],
-  connections: [],
+  edges: [],  // Changed from connections to edges
   selectedNodeIds: [],
-  zoom: 1,
-  panOffset: { x: 0, y: 0 },
   mode: 'select',
   clipboard: null,
 
@@ -17,7 +15,8 @@ const useCanvasStore = create<CanvasState & CanvasActions>((set, get) => ({
     const newNode: CanvasNode = {
       ...node,
       id: uuidv4(),
-      zIndex: Math.max(...get().nodes.map(n => n.zIndex || 0), 0) + 1,
+      width: node.width || 200,
+      height: node.height || 150,
     };
 
     set((state) => ({
@@ -42,8 +41,8 @@ const useCanvasStore = create<CanvasState & CanvasActions>((set, get) => ({
     removeNode: (id) => {
     set((state) => ({
       nodes: state.nodes.filter((node) => node.id !== id),
-      connections: state.connections.filter(
-        (conn) => conn.fromNodeId !== id && conn.toNodeId !== id
+      edges: state.edges.filter(
+        (edge) => edge.source !== id && edge.target !== id
       ),
       selectedNodeIds: state.selectedNodeIds.filter((nodeId) => nodeId !== id),
     }));
@@ -78,42 +77,33 @@ const useCanvasStore = create<CanvasState & CanvasActions>((set, get) => ({
     }));
   },
 
-  // Connection operations
-  addConnection: (fromNodeId, toNodeId) => {
+  // Edge operations (connections)
+  addEdge: (fromNodeId, toNodeId) => {
     // Prevent self-connections and duplicate connections
-    const { connections } = get();
-    const connectionExists = connections.some(
-      (conn) =>
-        (conn.fromNodeId === fromNodeId && conn.toNodeId === toNodeId) ||
-        (conn.fromNodeId === toNodeId && conn.toNodeId === fromNodeId)
+    const { edges } = get();
+    const edgeExists = edges.some(
+      (edge) =>
+        (edge.source === fromNodeId && edge.target === toNodeId) ||
+        (edge.source === toNodeId && edge.target === fromNodeId)
     );
 
-    if (fromNodeId !== toNodeId && !connectionExists) {
-      const newConnection: Connection = {
+    if (fromNodeId !== toNodeId && !edgeExists) {
+      const newEdge: Connection = {
         id: uuidv4(),
-        fromNodeId,
-        toNodeId,
+        source: fromNodeId,
+        target: toNodeId,
       };
 
       set((state) => ({
-        connections: [...state.connections, newConnection],
+        edges: [...state.edges, newEdge],
       }));
     }
   },
 
-  removeConnection: (id) => {
+  removeEdge: (id) => {
     set((state) => ({
-      connections: state.connections.filter((conn) => conn.id !== id),
+      edges: state.edges.filter((edge) => edge.id !== id),
     }));
-  },
-
-  // Canvas operations
-  setZoom: (zoom) => {
-    set({ zoom: Math.max(0.1, Math.min(3, zoom)) });
-  },
-
-  setPanOffset: (offset) => {
-    set({ panOffset: offset });
   },
 
   setMode: (mode) => {
@@ -129,10 +119,10 @@ const useCanvasStore = create<CanvasState & CanvasActions>((set, get) => ({
     const youtubePattern = /(?:youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/embed\/)([a-zA-Z0-9_-]+)/;
     const vimeoPattern = /vimeo\.com\/(\d+)/;
 
-    const { nodes, panOffset } = get();
+    const { nodes } = get();
     const position: Position = {
-      x: 100 - panOffset.x + nodes.length * 20,
-      y: 100 - panOffset.y + nodes.length * 20,
+      x: 100 + nodes.length * 20,
+      y: 100 + nodes.length * 20,
     };
 
     if (urlPattern.test(trimmedContent)) {
@@ -141,8 +131,8 @@ const useCanvasStore = create<CanvasState & CanvasActions>((set, get) => ({
         get().addNode({
           type: 'video',
           position,
-          size: { width: 320, height: 240 },
-          selected: false,
+          width: 320,
+          height: 240,
           data: {
             url: trimmedContent,
             embedType: youtubePattern.test(trimmedContent) ? 'youtube' : 'vimeo',
@@ -153,8 +143,8 @@ const useCanvasStore = create<CanvasState & CanvasActions>((set, get) => ({
         get().addNode({
           type: 'link',
           position,
-          size: { width: 300, height: 150 },
-          selected: false,
+          width: 300,
+          height: 150,
           data: {
             url: trimmedContent,
           },
@@ -165,8 +155,8 @@ const useCanvasStore = create<CanvasState & CanvasActions>((set, get) => ({
       get().addNode({
         type: 'text',
         position,
-        size: { width: 250, height: 150 },
-        selected: false,
+        width: 250,
+        height: 150,
         data: {
           content: trimmedContent,
           isMarkdown: false,
@@ -182,10 +172,8 @@ const useCanvasStore = create<CanvasState & CanvasActions>((set, get) => ({
     const state = get();
     return {
       nodes: state.nodes,
-      connections: state.connections,
+      edges: state.edges,
       selectedNodeIds: state.selectedNodeIds,
-      zoom: state.zoom,
-      panOffset: state.panOffset,
       mode: state.mode,
       clipboard: state.clipboard,
     };

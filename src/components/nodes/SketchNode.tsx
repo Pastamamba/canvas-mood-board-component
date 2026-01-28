@@ -1,43 +1,49 @@
 import React, { useRef, useState, useCallback, memo } from 'react';
-import { Text, Group, Rect, Line } from 'react-konva';
-import type { SketchNode } from '../../types';
+import { Handle, Position, NodeProps } from '@xyflow/react';
+import type { SketchNode as SketchNodeType } from '../../types';
 import useCanvasStore from '../../store/canvasStore';
 
-interface SketchNodeProps {
-  node: SketchNode;
-}
-
-const SketchNodeContent: React.FC<SketchNodeProps> = ({ node }) => {
+const SketchNode: React.FC<NodeProps<SketchNodeType['data']>> = ({ 
+  data, 
+  selected,
+  id
+}) => {
   const { updateNode } = useCanvasStore();
   const [isDrawing, setIsDrawing] = useState(false);
   const [currentStroke, setCurrentStroke] = useState<number[]>([]);
-  const stageRef = useRef<any>(null);
+  const canvasRef = useRef<HTMLCanvasElement>(null);
 
-  const handleMouseDown = useCallback((e: any) => {
-    const pos = e.target.getStage().getPointerPosition();
-    const localPos = {
-      x: pos.x - node.position.x - 12, // Account for padding
-      y: pos.y - node.position.y - 40, // Account for header
-    };
+  const handleMouseDown = useCallback((e: React.MouseEvent<HTMLCanvasElement>) => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+
+    const rect = canvas.getBoundingClientRect();
+    const x = e.clientX - rect.left;
+    const y = e.clientY - rect.top;
     
-    if (localPos.x >= 0 && localPos.x <= node.size.width - 24 && 
-        localPos.y >= 0 && localPos.y <= node.size.height - 52) {
-      setIsDrawing(true);
-      setCurrentStroke([localPos.x, localPos.y]);
-    }
-  }, [node.position, node.size]);
+    setIsDrawing(true);
+    setCurrentStroke([x, y]);
+  }, []);
 
-  const handleMouseMove = useCallback((e: any) => {
+  const handleMouseMove = useCallback((e: React.MouseEvent<HTMLCanvasElement>) => {
     if (!isDrawing) return;
 
-    const pos = e.target.getStage().getPointerPosition();
-    const localPos = {
-      x: pos.x - node.position.x - 12,
-      y: pos.y - node.position.y - 40,
-    };
+    const canvas = canvasRef.current;
+    if (!canvas) return;
 
-    setCurrentStroke(prev => [...prev, localPos.x, localPos.y]);
-  }, [isDrawing, node.position]);
+    const rect = canvas.getBoundingClientRect();
+    const x = e.clientX - rect.left;
+    const y = e.clientY - rect.top;
+
+    setCurrentStroke(prev => [...prev, x, y]);
+
+    // Draw on canvas
+    const ctx = canvas.getContext('2d');
+    if (ctx) {
+      ctx.lineTo(x, y);
+      ctx.stroke();
+    }
+  }, [isDrawing]);
 
   const handleMouseUp = useCallback(() => {
     if (!isDrawing || currentStroke.length < 4) return;
@@ -48,153 +54,107 @@ const SketchNodeContent: React.FC<SketchNodeProps> = ({ node }) => {
       width: 2,
     };
 
-    updateNode(node.id, {
+    updateNode(id, {
       data: {
-        ...node.data,
-        strokes: [...node.data.strokes, newStroke],
+        ...data,
+        strokes: [...data.strokes, newStroke],
       },
     });
 
     setIsDrawing(false);
     setCurrentStroke([]);
-  }, [isDrawing, currentStroke, node.id, node.data.strokes, updateNode]);
+  }, [isDrawing, currentStroke, id, data, updateNode]);
 
   const clearSketch = useCallback(() => {
-    updateNode(node.id, {
+    updateNode(id, {
       data: {
-        ...node.data,
+        ...data,
         strokes: [],
       },
     });
-  }, [node.id, node.data, updateNode]);
+
+    const canvas = canvasRef.current;
+    if (canvas) {
+      const ctx = canvas.getContext('2d');
+      if (ctx) {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+      }
+    }
+  }, [id, data, updateNode]);
+
+  // Redraw strokes when component mounts or strokes change
+  React.useEffect(() => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+
+    // Clear canvas
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+    // Set background color if specified
+    if (data.backgroundColor) {
+      ctx.fillStyle = data.backgroundColor;
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+    }
+
+    // Draw all strokes
+    data.strokes.forEach(stroke => {
+      if (stroke.points.length < 4) return;
+
+      ctx.beginPath();
+      ctx.moveTo(stroke.points[0], stroke.points[1]);
+      
+      for (let i = 2; i < stroke.points.length; i += 2) {
+        ctx.lineTo(stroke.points[i], stroke.points[i + 1]);
+      }
+      
+      ctx.strokeStyle = stroke.color;
+      ctx.lineWidth = stroke.width;
+      ctx.lineCap = 'round';
+      ctx.lineJoin = 'round';
+      ctx.stroke();
+    });
+  }, [data.strokes, data.backgroundColor]);
 
   return (
-    <Group>
-      {/* Header */}
-      <Rect
-        x={8}
-        y={8}
-        width={node.size.width - 16}
-        height={24}
-        fill="#fd7e14"
-        cornerRadius={4}
+    <div className={`sketch-node ${selected ? 'selected' : ''}`}>
+      {/* Connection handles */}
+      <Handle
+        type="target"
+        position={Position.Left}
+        style={{ background: '#555' }}
+      />
+      <Handle
+        type="source"
+        position={Position.Right}
+        style={{ background: '#555' }}
       />
       
-      <Text
-        x={12}
-        y={14}
-        text="SKETCH"
-        fontSize={10}
-        fontStyle="bold"
-        fill="white"
-      />
-
-      {/* Clear button */}
-      <Group 
-        x={node.size.width - 50} 
-        y={8}
-        onClick={clearSketch}
-        onTap={clearSketch}
-      >
-        <Rect
-          x={0}
-          y={0}
-          width={35}
-          height={24}
-          fill="rgba(255, 255, 255, 0.2)"
-          cornerRadius={4}
-        />
-        <Text
-          x={4}
-          y={7}
-          text="Clear"
-          fontSize={8}
-          fill="white"
-        />
-      </Group>
-
-      {/* Drawing area */}
-      <Group y={40}>
-        {/* Background */}
-        <Rect
-          x={12}
-          y={0}
-          width={node.size.width - 24}
-          height={node.size.height - 52}
-          fill={node.data.backgroundColor || '#fafafa'}
-          stroke="#ddd"
-          strokeWidth={1}
-          cornerRadius={4}
+      {/* Header */}
+      <div className="node-header sketch-header">
+        <span className="node-type">SKETCH</span>
+        <button onClick={clearSketch} className="clear-button" title="Clear sketch">
+          🗑
+        </button>
+      </div>
+      
+      {/* Content */}
+      <div className="node-content">
+        <canvas
+          ref={canvasRef}
+          width={280}
+          height={200}
+          className="sketch-canvas"
           onMouseDown={handleMouseDown}
           onMouseMove={handleMouseMove}
           onMouseUp={handleMouseUp}
+          onMouseLeave={handleMouseUp}
         />
-
-        {/* Existing strokes */}
-        {node.data.strokes.map((stroke, index) => (
-          <Line
-            key={index}
-            points={stroke.points}
-            stroke={stroke.color}
-            strokeWidth={stroke.width}
-            tension={0.5}
-            lineCap="round"
-            lineJoin="round"
-            x={12}
-            y={0}
-          />
-        ))}
-
-        {/* Current stroke being drawn */}
-        {isDrawing && currentStroke.length > 2 && (
-          <Line
-            points={currentStroke}
-            stroke="#333"
-            strokeWidth={2}
-            tension={0.5}
-            lineCap="round"
-            lineJoin="round"
-            x={12}
-            y={0}
-          />
-        )}
-      </Group>
-
-      {/* Instructions */}
-      {node.data.strokes.length === 0 && !isDrawing && (
-        <Text
-          x={12 + (node.size.width - 24) / 2 - 40}
-          y={40 + (node.size.height - 52) / 2 - 6}
-          text="Click and drag to draw"
-          fontSize={11}
-          fill="#999"
-          align="center"
-        />
-      )}
-
-      {/* Stroke count indicator */}
-      {node.data.strokes.length > 0 && (
-        <Group x={node.size.width - 25} y={node.size.height - 20}>
-          <Rect
-            x={0}
-            y={0}
-            width={15}
-            height={15}
-            fill="#fd7e14"
-            cornerRadius={7}
-          />
-          <Text
-            x={3}
-            y={3}
-            text={node.data.strokes.length.toString()}
-            fontSize={8}
-            fill="white"
-            fontStyle="bold"
-          />
-        </Group>
-      )}
-    </Group>
+      </div>
+    </div>
   );
 };
 
-export default memo(SketchNodeContent);
+export default memo(SketchNode);

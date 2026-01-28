@@ -21,8 +21,6 @@ const Toolbar: React.FC = () => {
     addNode,
     exportState,
     importState,
-    zoom,
-    setZoom,
     nodes,
   } = useCanvasStore();
 
@@ -43,21 +41,19 @@ const Toolbar: React.FC = () => {
     }
   };
 
-  const handleAddNode = (nodeType: 'document' | 'link' | 'video' | 'sketch' | 'text') => {
+    const handleAddNode = (nodeType: 'document' | 'link' | 'video' | 'sketch' | 'text') => {
     const position = {
       x: 100 + nodes.length * 20,
       y: 100 + nodes.length * 20,
     };
-
-    const baseSize = { width: 250, height: 150 };
 
     switch (nodeType) {
       case 'document':
         addNode({
           type: 'document',
           position,
-          size: { width: 300, height: 200 },
-          selected: false,
+          width: 300,
+          height: 200,
           data: {
             title: 'New Document',
             content: '',
@@ -72,8 +68,8 @@ const Toolbar: React.FC = () => {
         addNode({
           type: 'link',
           position,
-          size: baseSize,
-          selected: false,
+          width: 250,
+          height: 150,
           data: {
             url: '',
           },
@@ -84,8 +80,8 @@ const Toolbar: React.FC = () => {
         addNode({
           type: 'video',
           position,
-          size: { width: 320, height: 240 },
-          selected: false,
+          width: 320,
+          height: 240,
           data: {
             url: '',
             embedType: 'youtube',
@@ -97,8 +93,8 @@ const Toolbar: React.FC = () => {
         addNode({
           type: 'sketch',
           position,
-          size: { width: 300, height: 200 },
-          selected: false,
+          width: 300,
+          height: 250,
           data: {
             strokes: [],
           },
@@ -109,8 +105,8 @@ const Toolbar: React.FC = () => {
         addNode({
           type: 'text',
           position,
-          size: baseSize,
-          selected: false,
+          width: 250,
+          height: 150,
           data: {
             content: 'New text note...',
             isMarkdown: false,
@@ -133,11 +129,6 @@ const Toolbar: React.FC = () => {
       console.error('Failed to import file:', error);
       alert('Failed to import file. Please check if it\'s a valid JSON file.');
     }
-  };
-
-  const handleZoomChange = (delta: number) => {
-    const newZoom = Math.max(0.2, Math.min(2, zoom + delta));
-    setZoom(newZoom);
   };
 
   return (
@@ -201,39 +192,6 @@ const Toolbar: React.FC = () => {
         >
           <Paintbrush size={14} />
           Sketch
-        </button>
-      </div>
-
-      {/* Zoom Controls */}
-      <div style={{ display: 'flex', gap: '4px', marginRight: '12px' }}>
-        <button
-          onClick={() => handleZoomChange(-0.1)}
-          title="Zoom Out"
-        >
-          -
-        </button>
-        <span style={{ 
-          padding: '6px 8px', 
-          fontSize: '12px', 
-          minWidth: '50px',
-          textAlign: 'center',
-          background: '#f8f9fa',
-          border: '1px solid #ddd',
-          borderRadius: '4px'
-        }}>
-          {Math.round(zoom * 100)}%
-        </span>
-        <button
-          onClick={() => handleZoomChange(0.1)}
-          title="Zoom In"
-        >
-          +
-        </button>
-        <button
-          onClick={() => setZoom(1)}
-          title="Reset Zoom"
-        >
-          Reset
         </button>
       </div>
 
