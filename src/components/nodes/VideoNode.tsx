@@ -1,6 +1,6 @@
 import React, { useMemo, memo, useState, useCallback } from 'react';
 import { Handle, Position, NodeProps } from '@xyflow/react';
-import type { VideoNode as VideoNodeType } from '../../types';
+import type { VideoNodeData } from '../../types';
 import useCanvasStore from '../../store/canvasStore';
 import { useDebounce } from '../../hooks/usePerformance';
 import { 
@@ -11,23 +11,24 @@ import {
   getVimeoEmbedUrl 
 } from '../../utils';
 
-const VideoNode: React.FC<NodeProps<VideoNodeType['data']>> = ({ 
+const VideoNode: React.FC<NodeProps> = ({ 
   data, 
   selected,
   id
 }) => {
   const { updateNode } = useCanvasStore();
+  const typedData = data as VideoNodeData;
   const [showPreview, setShowPreview] = useState(false);
   const [isEditingTitle, setIsEditingTitle] = useState(false);
   const [isEditingUrl, setIsEditingUrl] = useState(false);
-  const [localTitle, setLocalTitle] = useState(data.title);
-  const [localUrl, setLocalUrl] = useState(data.url);
+  const [localTitle, setLocalTitle] = useState(typedData.title);
+  const [localUrl, setLocalUrl] = useState(typedData.url);
 
   // Debounced updates for performance
   const debouncedTitleUpdate = useDebounce((title: string) => {
     updateNode(id, {
       data: {
-        ...data,
+        ...typedData,
         title,
       },
     });
@@ -36,16 +37,16 @@ const VideoNode: React.FC<NodeProps<VideoNodeType['data']>> = ({
   const debouncedUrlUpdate = useDebounce((url: string) => {
     updateNode(id, {
       data: {
-        ...data,
+        ...typedData,
         url,
       },
     });
   }, 500);
 
   const videoData = useMemo(() => {
-    if (!data.url) return null;
+    if (!typedData.url) return null;
 
-    const youtubeId = getYouTubeVideoId(data.url);
+    const youtubeId = getYouTubeVideoId(typedData.url);
     if (youtubeId) {
       return {
         id: youtubeId,
@@ -55,7 +56,7 @@ const VideoNode: React.FC<NodeProps<VideoNodeType['data']>> = ({
       };
     }
 
-    const vimeoId = getVimeoVideoId(data.url);
+    const vimeoId = getVimeoVideoId(typedData.url);
     if (vimeoId) {
       return {
         id: vimeoId,
@@ -69,9 +70,9 @@ const VideoNode: React.FC<NodeProps<VideoNodeType['data']>> = ({
       id: null,
       type: 'iframe' as const,
       thumbnail: null,
-      embedUrl: data.url,
+      embedUrl: typedData.url,
     };
-  }, [data.url]);
+  }, [typedData.url]);
 
   const handleUrlChange = useCallback((event: React.ChangeEvent<HTMLInputElement>) => {
     const newUrl = event.target.value;
@@ -97,7 +98,7 @@ const VideoNode: React.FC<NodeProps<VideoNodeType['data']>> = ({
     setIsEditingTitle(false);
     updateNode(id, {
       data: {
-        ...data,
+        ...typedData,
         title: localTitle,
       },
     });
@@ -107,7 +108,7 @@ const VideoNode: React.FC<NodeProps<VideoNodeType['data']>> = ({
     setIsEditingUrl(false);
     updateNode(id, {
       data: {
-        ...data,
+        ...typedData,
         url: localUrl,
       },
     });
@@ -117,10 +118,10 @@ const VideoNode: React.FC<NodeProps<VideoNodeType['data']>> = ({
     if (event.key === 'Escape') {
       if (field === 'title') {
         setIsEditingTitle(false);
-        setLocalTitle(data.title);
+        setLocalTitle(typedData.title);
       } else {
         setIsEditingUrl(false);
-        setLocalUrl(data.url);
+        setLocalUrl(typedData.url);
       }
     }
     if (event.key === 'Enter') {
@@ -131,17 +132,17 @@ const VideoNode: React.FC<NodeProps<VideoNodeType['data']>> = ({
       }
     }
     event.stopPropagation();
-  }, [data.title, data.url]);
+  }, [typedData.title, typedData.url]);
 
   const togglePreview = useCallback(() => {
     setShowPreview(!showPreview);
   }, [showPreview]);
 
   const handlePlay = useCallback(() => {
-    if (data.url) {
-      window.open(data.url, '_blank', 'noopener,noreferrer');
+    if (typedData.url) {
+      window.open(typedData.url, '_blank', 'noopener,noreferrer');
     }
-  }, [data.url]);
+  }, [typedData.url]);
 
   return (
     <div className={`video-node ${selected ? 'selected' : ''} ${(isEditingTitle || isEditingUrl) ? 'editing' : ''}`}>
@@ -171,7 +172,7 @@ const VideoNode: React.FC<NodeProps<VideoNodeType['data']>> = ({
           <button onClick={togglePreview} className="preview-toggle" title="Toggle preview">
             {showPreview ? '🔽' : '▶️'}
           </button>
-          {data.url && (
+          {typedData.url && (
             <button
               onClick={handlePlay}
               className="play-btn"
@@ -200,9 +201,9 @@ const VideoNode: React.FC<NodeProps<VideoNodeType['data']>> = ({
             />
           ) : (
             <div className="video-url-display">
-              {data.url ? (
-                <span className="url-preview" title={data.url}>
-                  {new URL(data.url).hostname}
+              {typedData.url ? (
+                <span className="url-preview" title={typedData.url}>
+                  {new URL(typedData.url).hostname}
                 </span>
               ) : (
                 <span className="url-placeholder">Double-click to add URL...</span>
@@ -226,7 +227,7 @@ const VideoNode: React.FC<NodeProps<VideoNodeType['data']>> = ({
             />
           ) : (
             <div className="video-title-display">
-              {data.title || 'Untitled Video'}
+              {typedData.title || 'Untitled Video'}
             </div>
           )}
         </div>
@@ -236,7 +237,7 @@ const VideoNode: React.FC<NodeProps<VideoNodeType['data']>> = ({
           <div className="video-thumbnail" onClick={togglePreview}>
             <img 
               src={videoData.thumbnail} 
-              alt={data.title || 'Video thumbnail'} 
+              alt={typedData.title || 'Video thumbnail'} 
             />
             <div className="play-overlay">
               <div className="play-button">▶</div>
@@ -248,7 +249,7 @@ const VideoNode: React.FC<NodeProps<VideoNodeType['data']>> = ({
           <div className="video-preview">
             <iframe
               src={videoData.embedUrl}
-              title={data.title || 'Video'}
+              title={typedData.title || 'Video'}
               frameBorder="0"
               allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
               allowFullScreen

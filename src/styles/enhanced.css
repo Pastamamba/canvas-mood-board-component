@@ -1,9 +1,23 @@
-/* Additional CSS for enhanced UI/UX */
+/* Enhanced node styling with auto-sizing */
+.react-flow__node {
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  transition: box-shadow 0.2s ease, border-color 0.2s ease, transform 0.1s ease;
+  border: 2px solid transparent;
+  position: relative;
+  width: auto !important;
+  height: auto !important;
+}
+
+.react-flow__node:hover {
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.2);
+  transform: translateY(-1px);
+}
 
 /* Sketch Node Specific */
 .sketch-node {
-  min-width: 300px;
-  max-width: 400px;
+  min-width: 200px;
+  max-width: 280px;
 }
 
 .sketch-header {
@@ -80,21 +94,13 @@
   background: rgba(255, 255, 255, 0.3) !important;
 }
 
-/* Enhanced animations for better UX */
-@keyframes pulse {
-  0% {
-    transform: scale(1);
-  }
-  50% {
-    transform: scale(1.05);
-  }
-  100% {
-    transform: scale(1);
-  }
-}
-
+/* Enhanced node selection with minimal transforms */
 .react-flow__node.selected {
-  animation: pulse 2s infinite;
+  /* Stable selection with subtle highlight only */
+  border-color: #3b82f6 !important;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2), 0 4px 12px rgba(0, 0, 0, 0.15) !important;
+  /* Minimal scale change to reduce jumping */
+  transform: scale(1.01) !important;
 }
 
 /* Context menu styling */
@@ -154,8 +160,8 @@
   }
   
   .sketch-canvas {
-    width: 240px;
-    height: 160px;
+    width: 200px;
+    height: 140px;
   }
 }
 
@@ -286,7 +292,11 @@
   }
   
   .react-flow__node.selected {
-    animation: none;
+    transform: none !important;
+  }
+  
+  .react-flow__node:hover {
+    transform: none !important;
   }
 }
 

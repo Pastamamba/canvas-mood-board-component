@@ -1,26 +1,27 @@
 import React, { useEffect, useState, memo } from 'react';
 import { Handle, Position, NodeProps } from '@xyflow/react';
-import type { LinkNode as LinkNodeType } from '../../types';
+import type { LinkNodeData } from '../../types';
 import useCanvasStore from '../../store/canvasStore';
 import { fetchOpenGraphData, isValidUrl } from '../../utils';
 
-const LinkNode: React.FC<NodeProps<LinkNodeType['data']>> = ({ 
+const LinkNode: React.FC<NodeProps> = ({ 
   data, 
   selected,
   id
 }) => {
   const { updateNode } = useCanvasStore();
+  const typedData = data as LinkNodeData;
   const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
     // Auto-fetch OpenGraph data if URL is provided but no title/description
-    if (data.url && isValidUrl(data.url) && !data.title && !isLoading) {
+    if (typedData.url && isValidUrl(typedData.url) && !typedData.title && !isLoading) {
       setIsLoading(true);
-      fetchOpenGraphData(data.url)
+      fetchOpenGraphData(typedData.url)
         .then((ogData) => {
           updateNode(id, {
             data: {
-              ...data,
+              ...typedData,
               title: ogData.title,
               description: ogData.description,
               image: ogData.image,
@@ -35,12 +36,12 @@ const LinkNode: React.FC<NodeProps<LinkNodeType['data']>> = ({
           setIsLoading(false);
         });
     }
-  }, [data.url, data.title, id, updateNode, isLoading, data]);
+  }, [typedData.url, typedData.title, id, updateNode, isLoading, data]);
 
   const handleUrlChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     updateNode(id, {
       data: {
-        ...data,
+        ...typedData,
         url: event.target.value,
         // Reset other fields when URL changes
         title: undefined,
@@ -52,8 +53,8 @@ const LinkNode: React.FC<NodeProps<LinkNodeType['data']>> = ({
   };
 
   const handleOpenLink = () => {
-    if (data.url && isValidUrl(data.url)) {
-      window.open(data.url, '_blank');
+    if (typedData.url && isValidUrl(typedData.url)) {
+      window.open(typedData.url, '_blank');
     }
   };
 
@@ -74,7 +75,7 @@ const LinkNode: React.FC<NodeProps<LinkNodeType['data']>> = ({
       {/* Header */}
       <div className="node-header link-header">
         <span className="node-type">LINK</span>
-        {data.url && isValidUrl(data.url) && (
+        {typedData.url && isValidUrl(typedData.url) && (
           <button onClick={handleOpenLink} className="open-link-button" title="Open link">
             ↗
           </button>
@@ -85,7 +86,7 @@ const LinkNode: React.FC<NodeProps<LinkNodeType['data']>> = ({
       <div className="node-content">
         <input
           type="url"
-          value={data.url}
+          value={typedData.url}
           onChange={handleUrlChange}
           className="link-url-input"
           placeholder="Enter URL..."
@@ -95,22 +96,22 @@ const LinkNode: React.FC<NodeProps<LinkNodeType['data']>> = ({
           <div className="loading-indicator">Loading...</div>
         )}
         
-        {data.image && (
+        {typedData.image && (
           <div className="link-image">
-            <img src={data.image} alt={data.title || 'Link preview'} />
+            <img src={typedData.image} alt={typedData.title || 'Link preview'} />
           </div>
         )}
         
-        {data.title && (
-          <h3 className="link-title">{data.title}</h3>
+        {typedData.title && (
+          <h3 className="link-title">{typedData.title}</h3>
         )}
         
-        {data.description && (
-          <p className="link-description">{data.description}</p>
+        {typedData.description && (
+          <p className="link-description">{typedData.description}</p>
         )}
         
-        {data.siteName && (
-          <span className="link-site-name">{data.siteName}</span>
+        {typedData.siteName && (
+          <span className="link-site-name">{typedData.siteName}</span>
         )}
       </div>
     </div>

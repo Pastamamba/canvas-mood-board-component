@@ -1,26 +1,27 @@
 import React, { useRef, useState, useCallback, memo, useEffect } from 'react';
 import { Handle, Position, NodeProps } from '@xyflow/react';
-import type { SketchNode as SketchNodeType } from '../../types';
+import type { SketchNodeData } from '../../types';
 import useCanvasStore from '../../store/canvasStore';
 import { useDebounce } from '../../hooks/usePerformance';
 
-const SketchNode: React.FC<NodeProps<SketchNodeType['data']>> = ({ 
+const SketchNode: React.FC<NodeProps> = ({ 
   data, 
   selected,
   id
 }) => {
   const { updateNode } = useCanvasStore();
+  const typedData = data as SketchNodeData;
   const [isDrawing, setIsDrawing] = useState(false);
   const [currentPath, setCurrentPath] = useState<Array<{x: number, y: number}>>([]);
   const [isEditingTitle, setIsEditingTitle] = useState(false);
-  const [localTitle, setLocalTitle] = useState(data.title);
+  const [localTitle, setLocalTitle] = useState(typedData.title);
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
   // Debounced title update
   const debouncedTitleUpdate = useDebounce((title: string) => {
     updateNode(id, {
       data: {
-        ...data,
+        ...typedData,
         title,
       },
     });
@@ -42,13 +43,13 @@ const SketchNode: React.FC<NodeProps<SketchNodeType['data']>> = ({
     ctx.fillRect(0, 0, canvas.width, canvas.height);
 
     // Draw saved paths
-    if (data.paths && data.paths.length > 0) {
+    if (typedData.paths && typedData.paths.length > 0) {
       ctx.strokeStyle = '#374151';
       ctx.lineWidth = 2;
       ctx.lineCap = 'round';
       ctx.lineJoin = 'round';
 
-      data.paths.forEach(path => {
+      typedData.paths.forEach((path: Array<{ x: number; y: number }>) => {
         if (path.length < 2) return;
         
         ctx.beginPath();
@@ -61,7 +62,7 @@ const SketchNode: React.FC<NodeProps<SketchNodeType['data']>> = ({
         ctx.stroke();
       });
     }
-  }, [data.paths]);
+  }, [typedData.paths]);
 
   const getMousePos = useCallback((event: React.MouseEvent<HTMLCanvasElement>) => {
     const canvas = canvasRef.current;
@@ -116,12 +117,12 @@ const SketchNode: React.FC<NodeProps<SketchNodeType['data']>> = ({
     setIsDrawing(false);
     
     // Save the completed path
-    const newPaths = [...(data.paths || []), currentPath];
+    const newPaths = [...(typedData.paths || []), currentPath];
     setCurrentPath([]);
 
     updateNode(id, {
       data: {
-        ...data,
+        ...typedData,
         paths: newPaths,
       },
     });
@@ -138,7 +139,7 @@ const SketchNode: React.FC<NodeProps<SketchNodeType['data']>> = ({
 
     updateNode(id, {
       data: {
-        ...data,
+        ...typedData,
         paths: [],
       },
     });
@@ -158,7 +159,7 @@ const SketchNode: React.FC<NodeProps<SketchNodeType['data']>> = ({
     setIsEditingTitle(false);
     updateNode(id, {
       data: {
-        ...data,
+        ...typedData,
         title: localTitle,
       },
     });
@@ -168,11 +169,11 @@ const SketchNode: React.FC<NodeProps<SketchNodeType['data']>> = ({
     if (event.key === 'Enter' || event.key === 'Escape') {
       setIsEditingTitle(false);
       if (event.key === 'Escape') {
-        setLocalTitle(data.title);
+        setLocalTitle(typedData.title);
       }
     }
     event.stopPropagation();
-  }, [data.title]);
+  }, [typedData.title]);
 
   return (
     <div className={`sketch-node ${selected ? 'selected' : ''} ${isEditingTitle ? 'editing' : ''}`}>
@@ -221,7 +222,7 @@ const SketchNode: React.FC<NodeProps<SketchNodeType['data']>> = ({
             />
           ) : (
             <div className="sketch-title-display">
-              {data.title || 'Untitled Sketch'}
+              {typedData.title || 'Untitled Sketch'}
             </div>
           )}
         </div>

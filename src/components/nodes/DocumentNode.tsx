@@ -1,25 +1,26 @@
 import React, { useState, useCallback, memo, useMemo } from 'react';
 import { Handle, Position, NodeProps } from '@xyflow/react';
-import type { DocumentNode as DocumentNodeType } from '../../types';
+import type { DocumentNodeData } from '../../types';
 import useCanvasStore from '../../store/canvasStore';
 import { useDebounce } from '../../hooks/usePerformance';
 
-const DocumentNode: React.FC<NodeProps<DocumentNodeType['data']>> = ({ 
+const DocumentNode: React.FC<NodeProps> = ({ 
   data, 
   selected,
   id
 }) => {
   const { updateNode } = useCanvasStore();
+  const typedData = data as DocumentNodeData;
   const [isEditingTitle, setIsEditingTitle] = useState(false);
   const [isEditingContent, setIsEditingContent] = useState(false);
-  const [localTitle, setLocalTitle] = useState(data.title);
-  const [localContent, setLocalContent] = useState(data.content);
+  const [localTitle, setLocalTitle] = useState(typedData.title);
+  const [localContent, setLocalContent] = useState(typedData.content);
 
   // Debounced updates for performance
   const debouncedTitleUpdate = useDebounce((title: string) => {
     updateNode(id, {
       data: {
-        ...data,
+        ...typedData,
         title,
       },
     });
@@ -28,7 +29,7 @@ const DocumentNode: React.FC<NodeProps<DocumentNodeType['data']>> = ({
   const debouncedContentUpdate = useDebounce((content: string) => {
     updateNode(id, {
       data: {
-        ...data,
+        ...typedData,
         content,
       },
     });
@@ -36,7 +37,7 @@ const DocumentNode: React.FC<NodeProps<DocumentNodeType['data']>> = ({
 
   // Memoized icon based on document type
   const documentIcon = useMemo(() => {
-    const fileExtension = data.title?.split('.').pop()?.toLowerCase();
+    const fileExtension = typedData.title?.split('.').pop()?.toLowerCase();
     switch (fileExtension) {
       case 'pdf':
         return '📄';
@@ -56,7 +57,7 @@ const DocumentNode: React.FC<NodeProps<DocumentNodeType['data']>> = ({
       default:
         return '📄';
     }
-  }, [data.title]);
+  }, [typedData.title]);
 
   const handleTitleChange = useCallback((event: React.ChangeEvent<HTMLInputElement>) => {
     const newTitle = event.target.value;
@@ -82,7 +83,7 @@ const DocumentNode: React.FC<NodeProps<DocumentNodeType['data']>> = ({
     setIsEditingTitle(false);
     updateNode(id, {
       data: {
-        ...data,
+        ...typedData,
         title: localTitle,
       },
     });
@@ -92,7 +93,7 @@ const DocumentNode: React.FC<NodeProps<DocumentNodeType['data']>> = ({
     setIsEditingContent(false);
     updateNode(id, {
       data: {
-        ...data,
+        ...typedData,
         content: localContent,
       },
     });
@@ -102,17 +103,17 @@ const DocumentNode: React.FC<NodeProps<DocumentNodeType['data']>> = ({
     if (event.key === 'Escape') {
       if (field === 'title') {
         setIsEditingTitle(false);
-        setLocalTitle(data.title);
+        setLocalTitle(typedData.title);
       } else {
         setIsEditingContent(false);
-        setLocalContent(data.content);
+        setLocalContent(typedData.content);
       }
     }
     if (event.key === 'Enter' && field === 'title') {
       setIsEditingTitle(false);
     }
     event.stopPropagation();
-  }, [data.title, data.content]);
+  }, [typedData.title, typedData.content]);
 
   return (
     <div className={`document-node ${selected ? 'selected' : ''} ${(isEditingTitle || isEditingContent) ? 'editing' : ''}`}>
@@ -153,7 +154,7 @@ const DocumentNode: React.FC<NodeProps<DocumentNodeType['data']>> = ({
             />
           ) : (
             <div className="document-title-display">
-              {data.title || 'Untitled Document'}
+              {typedData.title || 'Untitled Document'}
             </div>
           )}
         </div>
@@ -173,15 +174,15 @@ const DocumentNode: React.FC<NodeProps<DocumentNodeType['data']>> = ({
             />
           ) : (
             <div className="document-content-display">
-              {data.content || 'Double-click to edit...'}
+              {typedData.content || 'Double-click to edit...'}
             </div>
           )}
         </div>
         
         {/* Categories */}
-        {data.categories && data.categories.length > 0 && (
+        {typedData.categories && typedData.categories.length > 0 && (
           <div className="document-categories">
-            {data.categories.map((category, index) => (
+            {typedData.categories.map((category: string, index: number) => (
               <span key={index} className="category-tag">
                 {category}
               </span>
@@ -190,10 +191,10 @@ const DocumentNode: React.FC<NodeProps<DocumentNodeType['data']>> = ({
         )}
         
         {/* Actors */}
-        {data.actors && data.actors.length > 0 && (
+        {typedData.actors && typedData.actors.length > 0 && (
           <div className="document-actors">
             <div className="actors-header">Actors:</div>
-            {data.actors.map((actor) => (
+            {typedData.actors.map((actor: { id: string; name: string; avatar?: string }) => (
               <div key={actor.id} className="actor-item">
                 {actor.avatar && (
                   <img 
@@ -209,9 +210,9 @@ const DocumentNode: React.FC<NodeProps<DocumentNodeType['data']>> = ({
         )}
         
         {/* Attachments */}
-        {data.attachments && data.attachments.length > 0 && (
+        {typedData.attachments && typedData.attachments.length > 0 && (
           <div className="document-attachments">
-            {data.attachments.map((attachment) => (
+            {typedData.attachments.map((attachment: { id: string; type: 'image' | 'file'; url: string; thumbnail?: string; name: string }) => (
               <div key={attachment.id} className="attachment-item">
                 {attachment.thumbnail && (
                   <img 

@@ -2,11 +2,11 @@ import { useCallback } from 'react';
 
 // Debounce function for input performance
 export const useDebounce = (callback: (...args: any[]) => void, delay: number) => {
-  let timeoutId: NodeJS.Timeout;
+  let timeoutId: number;
   
   return useCallback((...args: any[]) => {
     clearTimeout(timeoutId);
-    timeoutId = setTimeout(() => callback(...args), delay);
+    timeoutId = window.setTimeout(() => callback(...args), delay);
   }, [callback, delay]);
 };
 
@@ -25,8 +25,7 @@ export const useThrottle = (callback: (...args: any[]) => void, delay: number) =
 
 // Memoized selector hook for complex state
 export const useShallowSelector = <T, U>(
-  selector: (state: T) => U,
-  equalityFn: (prev: U, next: U) => boolean = Object.is
+  selector: (state: T) => U
 ) => {
   // This would be implemented with the actual store
   return selector;

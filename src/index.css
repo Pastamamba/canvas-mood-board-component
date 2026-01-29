@@ -70,10 +70,21 @@ body {
   display: flex;
   align-items: center;
   gap: 6px;
+  transition: all 0.2s ease;
 }
 
 .toolbar button:hover {
   background-color: #f8f9fa;
+  transform: translateY(-1px);
+}
+
+.toolbar button.draggable-button {
+  cursor: grab;
+  user-select: none;
+}
+
+.toolbar button.draggable-button:active {
+  cursor: grabbing;
 }
 
 .toolbar button.active {
@@ -87,8 +98,9 @@ body {
   border-radius: 8px;
   padding: 12px;
   border: 2px solid #e1e5e9;
-  min-width: 200px;
-  min-height: 100px;
+  width: fit-content;
+  max-width: 300px;
+  min-width: 150px;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
   position: relative;
 }
@@ -243,6 +255,10 @@ body {
   border-radius: 8px;
   font-family: inherit;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  min-width: 150px;
+  max-width: 400px;
+  width: auto !important;
+  height: auto !important;
 }
 
 .react-flow__node.selected {
@@ -285,12 +301,13 @@ body {
 /* Node content */
 .node-content {
   padding: 12px;
+  word-wrap: break-word;
 }
 
 /* Document Node */
 .document-node {
-  min-width: 300px;
-  min-height: 200px;
+  min-width: 280px;
+  width: auto;
 }
 
 .document-title {
@@ -383,8 +400,8 @@ body {
 
 /* Text Node */
 .text-node {
-  min-width: 250px;
-  min-height: 150px;
+  min-width: 200px;
+  width: auto;
 }
 
 .markdown-toggle {
@@ -426,7 +443,7 @@ body {
 /* Link Node */
 .link-node {
   min-width: 250px;
-  min-height: 150px;
+  width: auto;
 }
 
 .link-url-input {
@@ -485,8 +502,8 @@ body {
 
 /* Video Node */
 .video-node {
-  min-width: 320px;
-  min-height: 240px;
+  min-width: 280px;
+  width: auto;
 }
 
 .video-url-input, .video-title-input {
@@ -548,7 +565,7 @@ body {
 /* Sketch Node */
 .sketch-node {
   min-width: 300px;
-  min-height: 250px;
+  width: auto;
 }
 
 .clear-button {

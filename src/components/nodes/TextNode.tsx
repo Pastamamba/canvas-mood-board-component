@@ -1,24 +1,25 @@
 import React, { useState, useCallback, memo } from 'react';
 import { Handle, Position, NodeProps } from '@xyflow/react';
 import ReactMarkdown from 'react-markdown';
-import type { TextNode as TextNodeType } from '../../types';
+import type { TextNodeData } from '../../types';
 import useCanvasStore from '../../store/canvasStore';
 import { useDebounce } from '../../hooks/usePerformance';
 
-const TextNode: React.FC<NodeProps<TextNodeType['data']>> = ({ 
+const TextNode: React.FC<NodeProps> = ({
   data, 
   selected,
   id
 }) => {
   const { updateNode } = useCanvasStore();
+  const typedData = data as TextNodeData;
   const [isEditing, setIsEditing] = useState(false);
-  const [localContent, setLocalContent] = useState(data.content);
+  const [localContent, setLocalContent] = useState(typedData.content);
 
   // Debounced update to improve performance during typing
   const debouncedUpdate = useDebounce((content: string) => {
     updateNode(id, {
       data: {
-        ...data,
+        ...typedData,
         content,
       },
     });
@@ -27,8 +28,8 @@ const TextNode: React.FC<NodeProps<TextNodeType['data']>> = ({
   const handleToggleMarkdown = useCallback(() => {
     updateNode(id, {
       data: {
-        ...data,
-        isMarkdown: !data.isMarkdown,
+        ...typedData,
+        isMarkdown: !typedData.isMarkdown,
       },
     });
   }, [id, data, updateNode]);
@@ -48,7 +49,7 @@ const TextNode: React.FC<NodeProps<TextNodeType['data']>> = ({
     // Final update on blur to ensure consistency
     updateNode(id, {
       data: {
-        ...data,
+        ...typedData,
         content: localContent,
       },
     });
@@ -57,11 +58,11 @@ const TextNode: React.FC<NodeProps<TextNodeType['data']>> = ({
   const handleKeyDown = useCallback((event: React.KeyboardEvent) => {
     if (event.key === 'Escape') {
       setIsEditing(false);
-      setLocalContent(data.content); // Reset to original content
+      setLocalContent(typedData.content); // Reset to original content
     }
     // Prevent event bubbling to avoid canvas shortcuts
     event.stopPropagation();
-  }, [data.content]);
+  }, [typedData.content]);
 
   return (
     <div className={`text-node ${selected ? 'selected' : ''} ${isEditing ? 'editing' : ''}`}>
@@ -85,10 +86,10 @@ const TextNode: React.FC<NodeProps<TextNodeType['data']>> = ({
         <div className="node-controls">
           <button
             onClick={handleToggleMarkdown}
-            className={`markdown-toggle ${data.isMarkdown ? 'active' : ''}`}
-            title={data.isMarkdown ? 'Disable Markdown' : 'Enable Markdown'}
+            className={`markdown-toggle ${typedData.isMarkdown ? 'active' : ''}`}
+            title={typedData.isMarkdown ? 'Disable Markdown' : 'Enable Markdown'}
           >
-            {data.isMarkdown ? '📝' : 'MD'}
+            {typedData.isMarkdown ? '📝' : 'MD'}
           </button>
         </div>
       </div>
@@ -108,12 +109,12 @@ const TextNode: React.FC<NodeProps<TextNodeType['data']>> = ({
           />
         ) : (
           <div className="text-display">
-            {data.isMarkdown ? (
+            {typedData.isMarkdown ? (
               <div className="markdown-content">
-                <ReactMarkdown>{data.content || 'Double-click to edit...'}</ReactMarkdown>
+                <ReactMarkdown>{typedData.content || 'Double-click to edit...'}</ReactMarkdown>
               </div>
             ) : (
-              <pre className="text-content">{data.content || 'Double-click to edit...'}</pre>
+              <pre className="text-content">{typedData.content || 'Double-click to edit...'}</pre>
             )}
           </div>
         )}

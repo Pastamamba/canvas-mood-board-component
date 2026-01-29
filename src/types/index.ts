@@ -12,17 +12,6 @@ export interface Size {
 
 export type NodeType = 'document' | 'link' | 'video' | 'sketch' | 'text';
 
-// React Flow compatible node interface
-export interface BaseNode extends FlowNode {
-  id: string;
-  type: NodeType;
-  position: Position;
-  data: any;
-  selected?: boolean;
-  width?: number;
-  height?: number;
-}
-
 export interface Connection extends FlowEdge {
   id: string;
   source: string;
@@ -31,7 +20,7 @@ export interface Connection extends FlowEdge {
   targetHandle?: string;
 }
 
-export interface DocumentNodeData {
+export interface DocumentNodeData extends Record<string, unknown> {
   documentId?: string;
   title: string;
   content: string;
@@ -50,7 +39,7 @@ export interface DocumentNodeData {
   }>;
 }
 
-export interface LinkNodeData {
+export interface LinkNodeData extends Record<string, unknown> {
   url: string;
   title?: string;
   description?: string;
@@ -58,49 +47,56 @@ export interface LinkNodeData {
   siteName?: string;
 }
 
-export interface VideoNodeData {
+export interface VideoNodeData extends Record<string, unknown> {
   url: string;
   title?: string;
   thumbnail?: string;
   embedType: 'youtube' | 'vimeo' | 'iframe';
 }
 
-export interface SketchNodeData {
-  strokes: Array<{
-    points: number[];
-    color: string;
-    width: number;
-  }>;
+export interface SketchNodeData extends Record<string, unknown> {
+  title?: string;
+  paths: Array<Array<{ x: number; y: number }>>;
   backgroundColor?: string;
 }
 
-export interface TextNodeData {
+export interface TextNodeData extends Record<string, unknown> {
   content: string;
   isMarkdown: boolean;
 }
 
-export interface DocumentNode extends BaseNode {
+export interface DocumentNode extends FlowNode {
+  id: string;
   type: 'document';
+  position: Position;
   data: DocumentNodeData;
 }
 
-export interface LinkNode extends BaseNode {
+export interface LinkNode extends FlowNode {
+  id: string;
   type: 'link';
+  position: Position;
   data: LinkNodeData;
 }
 
-export interface VideoNode extends BaseNode {
+export interface VideoNode extends FlowNode {
+  id: string;
   type: 'video';
+  position: Position;
   data: VideoNodeData;
 }
 
-export interface SketchNode extends BaseNode {
+export interface SketchNode extends FlowNode {
+  id: string;
   type: 'sketch';
+  position: Position;
   data: SketchNodeData;
 }
 
-export interface TextNode extends BaseNode {
+export interface TextNode extends FlowNode {
+  id: string;
   type: 'text';
+  position: Position;
   data: TextNodeData;
 }
 

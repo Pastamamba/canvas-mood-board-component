@@ -41,7 +41,12 @@ const Toolbar: React.FC = () => {
     }
   };
 
-    const handleAddNode = (nodeType: 'document' | 'link' | 'video' | 'sketch' | 'text') => {
+  const handleDragStart = (event: React.DragEvent<HTMLButtonElement>, nodeType: string) => {
+    event.dataTransfer.setData('application/reactflow', nodeType);
+    event.dataTransfer.effectAllowed = 'move';
+  };
+
+  const handleAddNode = (nodeType: 'document' | 'link' | 'video' | 'sketch' | 'text') => {
     const position = {
       x: 100 + nodes.length * 20,
       y: 100 + nodes.length * 20,
@@ -96,7 +101,9 @@ const Toolbar: React.FC = () => {
           width: 300,
           height: 250,
           data: {
-            strokes: [],
+            title: 'New Sketch',
+            paths: [],
+            backgroundColor: '#ffffff',
           },
         });
         break;
@@ -155,40 +162,55 @@ const Toolbar: React.FC = () => {
       {/* Add Node Buttons */}
       <div style={{ display: 'flex', gap: '4px', marginRight: '12px' }}>
         <button
+          draggable
+          onDragStart={(e) => handleDragStart(e, 'document')}
           onClick={() => handleAddNode('document')}
-          title="Add Document Node"
+          title="Drag to canvas or click to add Document Node"
+          className="draggable-button"
         >
           <Plus size={14} />
           Doc
         </button>
         
         <button
+          draggable
+          onDragStart={(e) => handleDragStart(e, 'text')}
           onClick={() => handleAddNode('text')}
-          title="Add Text Node"
+          title="Drag to canvas or click to add Text Node"
+          className="draggable-button"
         >
           <FileText size={14} />
           Text
         </button>
         
         <button
+          draggable
+          onDragStart={(e) => handleDragStart(e, 'link')}
           onClick={() => handleAddNode('link')}
-          title="Add Link Node"
+          title="Drag to canvas or click to add Link Node"
+          className="draggable-button"
         >
           <ExternalLink size={14} />
           Link
         </button>
         
         <button
+          draggable
+          onDragStart={(e) => handleDragStart(e, 'video')}
           onClick={() => handleAddNode('video')}
-          title="Add Video Node"
+          title="Drag to canvas or click to add Video Node"
+          className="draggable-button"
         >
           <Video size={14} />
           Video
         </button>
         
         <button
+          draggable
+          onDragStart={(e) => handleDragStart(e, 'sketch')}
           onClick={() => handleAddNode('sketch')}
-          title="Add Sketch Node"
+          title="Drag to canvas or click to add Sketch Node"
+          className="draggable-button"
         >
           <Paintbrush size={14} />
           Sketch

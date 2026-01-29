@@ -3,15 +3,6 @@ import { subscribeWithSelector } from 'zustand/middleware';
 import { v4 as uuidv4 } from 'uuid';
 import type { CanvasState, CanvasActions, CanvasNode, Connection, Position } from '../types';
 
-// Memoized selectors for better performance
-const createSelectors = <T extends Record<string, any>>(store: T) => {
-  const selectors = {} as { [K in keyof T]: () => T[K] };
-  Object.keys(store.getState()).forEach((key) => {
-    selectors[key as keyof T] = () => store.getState()[key as keyof T];
-  });
-  return selectors;
-};
-
 const useCanvasStore = create<CanvasState & CanvasActions>()(
   subscribeWithSelector((set, get) => ({
   // Initial state
@@ -23,12 +14,12 @@ const useCanvasStore = create<CanvasState & CanvasActions>()(
 
   // Node operations
   addNode: (node) => {
-    const newNode: CanvasNode = {
+    const newNode = {
       ...node,
       id: uuidv4(),
       width: node.width || 200,
       height: node.height || 150,
-    };
+    } as CanvasNode;
 
     set((state) => ({
       nodes: [...state.nodes, newNode],
@@ -44,13 +35,13 @@ const useCanvasStore = create<CanvasState & CanvasActions>()(
       // Only update if there are actual changes to prevent unnecessary re-renders
       const currentNode = state.nodes[nodeIndex];
       const hasChanges = Object.keys(updates).some(key => 
-        JSON.stringify(currentNode[key]) !== JSON.stringify(updates[key])
+        JSON.stringify((currentNode as any)[key]) !== JSON.stringify((updates as any)[key])
       );
       
       if (!hasChanges) return state;
       
       const newNodes = [...state.nodes];
-      newNodes[nodeIndex] = { ...newNodes[nodeIndex], ...updates };
+      newNodes[nodeIndex] = { ...newNodes[nodeIndex], ...updates } as CanvasNode;
       
       return { nodes: newNodes };
     });
