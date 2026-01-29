@@ -47,13 +47,13 @@ const CanvasInner: React.FC = () => {
   const addCanvasEdge = useCanvasStore((state) => state.addEdge);
   const addNode = useCanvasStore((state) => state.addNode);
   const clearSelection = useCanvasStore((state) => state.clearSelection);
-  
+
   // React Flow hooks - these work because we're inside ReactFlowProvider
-  const { screenToFlowPosition } = useReactFlow();
-  
-  // Ref for the React Flow wrapper
+  const { screenToFlowPosition, getViewport, project } = useReactFlow();
+
+  // Ref for the React Flow container to get proper bounds
   const reactFlowWrapper = useRef<HTMLDivElement>(null);
-  
+
   // Custom hooks
   useClipboard();
   useKeyboardShortcuts();
@@ -150,77 +150,98 @@ const CanvasInner: React.FC = () => {
     event.dataTransfer.dropEffect = "move";
   }, []);
 
-  // Drop handler using React Flow's built-in coordinate transformation
-  const handleDrop = useCallback((event: React.DragEvent) => {
-    event.preventDefault();
-    
-    const nodeType = event.dataTransfer.getData('application/reactflow');
-    if (!nodeType) return;
+  // React Flow's native onDrop handler with manual coordinate calculation
+  const handleDrop = useCallback(
+    (event: React.DragEvent) => {
+      event.preventDefault();
 
-    // Get the bounds of the ReactFlow wrapper
-    const reactFlowBounds = reactFlowWrapper.current?.getBoundingClientRect();
-    if (!reactFlowBounds) return;
+      const nodeType = event.dataTransfer.getData("application/reactflow");
 
-    // Use React Flow's screenToFlowPosition with proper bounds
-    const position = screenToFlowPosition({
-      x: event.clientX - reactFlowBounds.left,
-      y: event.clientY - reactFlowBounds.top,
-    });
+      if (!nodeType) {
+        console.warn("❌ No nodeType found in dataTransfer");
+        return;
+      }
 
-    // Create new node
-    const newNode = {
-      id: `${nodeType}_${Date.now()}`,
-      type: nodeType as NodeType,
-      position,
-      data: createDefaultNodeData(nodeType),
-    };
+      if (!reactFlowWrapper.current) {
+        console.error("❌ reactFlowWrapper.current is null");
+        return;
+      }
 
-    addNode(newNode as any);
-  }, [screenToFlowPosition, addNode]);
+      // Get React Flow wrapper bounds and viewport
+      const reactFlowBounds = reactFlowWrapper.current.getBoundingClientRect();
+      const viewport = getViewport();
 
-// Helper function to get default data for new nodes
-function createDefaultNodeData(nodeType: string) {
-  switch (nodeType) {
-    case 'document':
-      return {
-        title: 'New Document',
-        content: '',
-        url: '',
-        categories: [],
-        actors: [],
-        attachments: [],
+      // Calculate position relative to React Flow wrapper
+      const clientX = event.clientX - reactFlowBounds.left;
+      const clientY = event.clientY - reactFlowBounds.top;
+
+      // Apply zoom-scaled offset correction
+      // Base offset that works at zoom level (adjust as needed)
+      const baseOffset = 2100;
+      const scaledOffset = baseOffset * viewport.zoom;
+
+      const adjustedClientY = clientY - scaledOffset;
+      const flowX = (clientX - viewport.x) / viewport.zoom;
+      const flowY = (adjustedClientY - viewport.y) / viewport.zoom;
+
+      const position = { x: flowX, y: flowY };
+
+      // Create new node
+      const newNode = {
+        id: `${nodeType}_${Date.now()}`,
+        type: nodeType as NodeType,
+        position: position,
+        data: createDefaultNodeData(nodeType),
       };
-    case 'link':
-      return {
-        url: '',
-        title: 'New Link',
-        description: '',
-        metadata: {
-          title: '',
-          description: '',
-          image: '',
-          siteName: '',
-        },
-      };
-    case 'video':
-      return {
-        url: '',
-        title: 'New Video',
-        description: '',
-      };
-    case 'sketch':
-      return {
-        title: 'New Sketch',
-        sketchData: '',
-      };
-    case 'text':
-      return {
-        text: 'New Text',
-      };
-    default:
-      return { text: 'New Node' };
+
+      addNode(newNode as any);
+    },
+    [addNode, getViewport],
+  );
+
+  // Helper function to get default data for new nodes
+  function createDefaultNodeData(nodeType: string) {
+    switch (nodeType) {
+      case "document":
+        return {
+          title: "New Document",
+          content: "",
+          url: "",
+          categories: [],
+          actors: [],
+          attachments: [],
+        };
+      case "link":
+        return {
+          url: "",
+          title: "New Link",
+          description: "",
+          metadata: {
+            title: "",
+            description: "",
+            image: "",
+            siteName: "",
+          },
+        };
+      case "video":
+        return {
+          url: "",
+          title: "New Video",
+          description: "",
+        };
+      case "sketch":
+        return {
+          title: "New Sketch",
+          sketchData: "",
+        };
+      case "text":
+        return {
+          text: "New Text",
+        };
+      default:
+        return { text: "New Node" };
+    }
   }
-}
 
   // Helper function to add node at position
   // const addNodeAtPosition = useCallback(
@@ -312,9 +333,12 @@ function createDefaultNodeData(nodeType: string) {
 // Main Canvas component with ReactFlowProvider wrapper
 const Canvas: React.FC = () => {
   return (
-    <div className="canvas-container" style={{ width: '100%', height: '100vh' }}>
+    <div
+      className="canvas-container"
+      style={{ width: "100%", height: "100vh" }}
+    >
       <Toolbar />
-      <div style={{ width: '100%', height: 'calc(100vh - 60px)' }}>
+      <div style={{ width: "100%", height: "calc(100vh - 60px)" }}>
         <ReactFlowProvider>
           <CanvasInner />
         </ReactFlowProvider>
