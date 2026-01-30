@@ -7,7 +7,7 @@ export const nodes: Node[] = [
     type: 'textNode',
     position: { x: 100, y: 100 },
     data: {
-      text: 'Tervetuloa Canvas Mood Board -sovellukseen! 🎨\n\nTämä on interaktiivinen työtila ideoiden ja sisällön järjestämiseen. Voit:\n• Vetää ja pudottaa eri sisältötyyppejä\n• Yhdistää solmuja nuolilla\n• Muuttaa kokoja ja värejä\n• Tallentaa ja ladata projekteja',
+      text: 'Welcome to Canvas Mood Board application! 🎨\n\nThis is an interactive workspace for organizing ideas and content. You can:\n• Drag and drop different content types\n• Connect nodes with arrows\n• Resize and change colors\n• Save and load projects',
       fontSize: 16,
       color: '#2563eb'
     },
@@ -49,7 +49,7 @@ export const nodes: Node[] = [
     data: {
       src: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&h=300&fit=crop',
       alt: 'Creative workspace',
-      caption: 'Luova työympäristö'
+      caption: 'Creative workspace'
     },
     style: { width: 300, height: 250 }
   },
@@ -61,7 +61,7 @@ export const nodes: Node[] = [
     data: {
       src: 'https://images.unsplash.com/photo-1611224923853-80b023f02d71?w=400&h=300&fit=crop',
       alt: 'Design inspiration',
-      caption: 'Suunnittelun inspiraatio'
+      caption: 'Design inspiration'
     },
     style: { width: 280, height: 220 }
   },
@@ -72,7 +72,7 @@ export const nodes: Node[] = [
     type: 'noteNode',
     position: { x: 850, y: 300 },
     data: {
-      note: 'Muista lisätä värit ja fontit projektiin! 🎨',
+      note: 'Remember to add colors and fonts to the project! 🎨',
       color: 'yellow'
     },
     style: { width: 200, height: 120 }
@@ -83,7 +83,7 @@ export const nodes: Node[] = [
     type: 'noteNode',
     position: { x: 1100, y: 300 },
     data: {
-      note: 'Ideoita:\n• Lisää animaatiot\n• Parempi UX\n• Mobiilituki',
+      note: 'Ideas:\n• Add animations\n• Better UX\n• Mobile support',
       color: 'blue'
     },
     style: { width: 180, height: 140 }
@@ -94,7 +94,7 @@ export const nodes: Node[] = [
     type: 'noteNode',
     position: { x: 1320, y: 250 },
     data: {
-      note: 'TÄRKEÄ!\nTarkista API-avaimet ennen julkaisua 🔐',
+      note: 'IMPORTANT!\nCheck API keys before deployment 🔐',
       color: 'pink'
     },
     style: { width: 200, height: 100 }
@@ -106,14 +106,14 @@ export const nodes: Node[] = [
     type: 'documentNode',
     position: { x: 100, y: 650 },
     data: {
-      title: 'Projektin Dokumentaatio',
-      content: 'Kattava ohjeistus canvas-sovelluksen käyttöön ja kehittämiseen',
+      title: 'Project Documentation',
+      content: 'Comprehensive guide for using and developing the canvas application',
       documentId: 'doc-001',
-      categories: ['Dokumentaatio', 'Ohjeistus', 'Kehitys'],
+      categories: ['Documentation', 'Guide', 'Development'],
       actors: [
-        { id: 'user-1', name: 'Projektipäällikkö', avatar: '👨‍💼' },
+        { id: 'user-1', name: 'Project Manager', avatar: '👨‍💼' },
         { id: 'user-2', name: 'UI Designer', avatar: '🎨' },
-        { id: 'user-3', name: 'Kehittäjä', avatar: '👩‍💻' }
+        { id: 'user-3', name: 'Developer', avatar: '👩‍💻' }
       ],
       attachments: [
         { 
@@ -159,7 +159,7 @@ export const nodes: Node[] = [
     data: {
       url: 'https://vimeo.com/76979871',
       title: 'Design Inspiration Video',
-      description: 'Luovan suunnittelun periaatteet'
+      description: 'Principles of creative design'
     },
     style: { width: 320, height: 220 }
   },
@@ -171,8 +171,8 @@ export const nodes: Node[] = [
     position: { x: 1400, y: 500 },
     data: {
       url: 'https://www.openstreetmap.org/export/embed.html?bbox=-0.004017949104309083%2C51.47612752641776%2C0.00030577182769775396%2C51.478569861898606&layer=mapnik',
-      title: 'Kartta: Lontoo',
-      description: 'Interaktiivinen kartta projektikohteesta'
+      title: 'Map: London',
+      description: 'Interactive map of project location'
     },
     style: { width: 400, height: 300 }
   },
@@ -183,27 +183,27 @@ export const nodes: Node[] = [
     type: 'markdownNode',
     position: { x: 150, y: 1050 },
     data: {
-      content: `# Projektin Tilanne 📊
+      content: `# Project Status 📊
 
-## Valmistuneet ominaisuudet ✅
-- [x] Drag & Drop toiminnallisuus
-- [x] 9 erilaista node-tyyppiä
-- [x] Koko-muutokset (NodeResizer)
-- [x] JSON serialisointi
+## Completed Features ✅
+- [x] Drag & Drop functionality
+- [x] 9 different node types
+- [x] Resizing (NodeResizer)
+- [x] JSON serialization
 - [x] OpenGraph metadata
-- [x] Leikepöytä-integraatio
+- [x] Clipboard integration
 
-## Seuraavat askeleet 🚀
-1. **Käyttöliittymä parannukset**
-   - Paremmat ikonit
-   - Animaatiot siirtymille
+## Next Steps 🚀
+1. **UI Improvements**
+   - Better icons
+   - Transition animations
    
-2. **Lisäominaisuudet**
-   - Ryhmittely toiminto
-   - Versionhallinta
-   - Yhteistyötyökalut
+2. **Additional Features**
+   - Grouping functionality
+   - Version control
+   - Collaboration tools
 
-## Tekniset yksityiskohdat ⚙️
+## Technical Details ⚙️
 \`\`\`typescript
 interface NodeData {
   id: string;
@@ -213,7 +213,7 @@ interface NodeData {
 }
 \`\`\`
 
-> **Huomio:** Muista testata kaikki toiminnot ennen deploymenttia!`,
+> **Note:** Remember to test all features before deployment!`,
       theme: 'default'
     },
     style: { width: 450, height: 400 }
@@ -225,7 +225,7 @@ interface NodeData {
     type: 'noteNode',
     position: { x: 700, y: 1000 },
     data: {
-      note: '💡 Uusi idea:\nLisää ääni-muistiinpanot!',
+      note: '💡 New idea:\nAdd voice memos!',
       color: 'green'
     },
     style: { width: 200, height: 100 }
@@ -236,7 +236,7 @@ interface NodeData {
     type: 'noteNode',
     position: { x: 950, y: 1050 },
     data: {
-      note: '🎯 Tavoite:\n95% käyttäjätyytyväisyys',
+      note: '🎯 Goal:\n95% user satisfaction',
       color: 'purple'
     },
     style: { width: 180, height: 100 }
@@ -248,7 +248,7 @@ interface NodeData {
     type: 'textNode',
     position: { x: 1200, y: 950 },
     data: {
-      text: 'Käyttäjäpalautteen yhteenveto:\n\n"Loistava työkalu ideointiin!"\n"Intuitiivinen käyttöliittymä"\n"Kaipaan lisää värivaihtoehtoja"',
+      text: 'User Feedback Summary:\n\n"Great tool for brainstorming!"\n"Intuitive user interface"\n"Need more color options"',
       fontSize: 14,
       color: '#059669'
     },
@@ -263,7 +263,7 @@ interface NodeData {
     data: {
       src: 'https://images.unsplash.com/photo-1551650975-87deedd944c3?w=300&h=200&fit=crop',
       alt: 'Team collaboration',
-      caption: 'Tiimityöskentely toimistolla'
+      caption: 'Team collaboration in office'
     },
     style: { width: 250, height: 180 }
   }
@@ -294,7 +294,7 @@ export const edges: Edge[] = [
     target: '3',
     type: 'button',
     animated: true,
-    label: 'React ekosysteemi',
+    label: 'React ecosystem',
     style: { stroke: '#7c3aed' }
   },
   
@@ -304,7 +304,7 @@ export const edges: Edge[] = [
     source: '4',
     target: '5',
     type: 'button',
-    label: 'Inspiraatio',
+    label: 'Inspiration',
     style: { stroke: '#dc2626' }
   },
   
@@ -330,7 +330,7 @@ export const edges: Edge[] = [
     source: '10',
     target: '11',
     type: 'button',
-    label: 'Oppimateriaali',
+    label: 'Learning Material',
     style: { stroke: '#ec4899' }
   },
   
@@ -341,7 +341,7 @@ export const edges: Edge[] = [
     target: '13',
     type: 'button',
     animated: true,
-    label: 'Projektin status',
+    label: 'Project status',
     style: { stroke: '#06b6d4' }
   },
   
@@ -360,7 +360,7 @@ export const edges: Edge[] = [
     source: '16',
     target: '17',
     type: 'button',
-    label: 'Tiimi',
+    label: 'Team',
     style: { stroke: '#f97316' }
   },
 

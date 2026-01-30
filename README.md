@@ -1,76 +1,98 @@
-# React Flow Canvas Project
+# Canvas Mood Board - React Flow Application
 
-Interaktiivinen React Flow -sovellus, joka sisältää erilaisia mukautettuja node- ja edge-tyyppejä.
+Interactive React Flow application with custom node and edge types for creating visual mood boards and organizing content.
 
-## Ominaisuudet
+## Features
 
-- **Custom Node Types:**
-  - AnnotationNode - Selitykset ja merkinnät
-  - ToolbarNode - Työkalupalkki emojivalitsimella
-  - ResizerNode - Koon muutettava node
-  - CircleNode - Pyöreä node
-  - TextInputNode - Tekstinsyöttökomponentti
+- **9 Custom Node Types:**
+  - TextNode - Rich text with font size and color options
+  - LinkNode - URL preview with OpenGraph metadata
+  - ImageNode - Image display with captions
+  - NoteNode - Sticky notes in 5 different colors
+  - DocumentNode - Complex document structure with actors and attachments
+  - VideoNode - YouTube/Vimeo video embedding
+  - IframeNode - Embedded web content
+  - MarkdownNode - Markdown rendering support
+  - SketchNode - Drawing functionality (available)
 
 - **Custom Edge Types:**
-  - ButtonEdge - Klikkattavat edget poistopainikkeella
+  - ButtonEdge - Clickable edges with delete buttons
 
-- **Ominaisuudet:**
-  - Drag & drop
-  - Zoomaus ja panorointi
-  - Minimap
-  - Controls-palkki
-  - Background-ruudukko
-  - TypeScript-tuki
-  - ESLint-konfigurointi
-  - Tailwind CSS (valmis käyttöön)
+- **Advanced Features:**
+  - Drag & drop functionality
+  - Node resizing with NodeResizer
+  - Clipboard integration (Ctrl+V to paste URLs, images, text)
+  - JSON export/import (Ctrl+E/Ctrl+O)
+  - OpenGraph metadata fetching for links
+  - Content type auto-detection
+  - Zoom and pan
+  - Minimap and controls
+  - Background grid
+  - TypeScript support
+  - ESLint configuration
 
-## Käyttö
+## Usage
 
-### Kehityspalvelimen käynnistys
+### Start Development Server
 ```bash
 npm run dev
 ```
 
-### Build tuotantoon
+### Build for Production
 ```bash
 npm run build
 ```
 
-### ESLint-tarkistus
+### Run ESLint
 ```bash
 npm run lint
 ```
 
-### Esikatselun avaaminen buildista
+### Preview Production Build
 ```bash
 npm run preview
 ```
 
-## Teknologiat
+## Technologies
 
-- React 18
-- TypeScript
-- @xyflow/react (React Flow)
-- Vite
-- ESLint
-- Tailwind CSS (konfiguroitu)
+- React 19
+- TypeScript 5.9
+- @xyflow/react (React Flow) 12.10
+- Vite 7.2
+- ESLint 9
+- Custom CSS styling
 
-## Projektisrakenne
+## Project Structure
 
 ```
 src/
-├── AnnotationNode.tsx      # Annotation node komponentti
-├── ButtonEdge.tsx          # Custom edge klikkauspainikkeella
-├── CircleNode.tsx          # Pyöreä node
-├── OverviewFlow.tsx        # Pää-React Flow komponentti
-├── ResizerNode.tsx         # Koon muutettava node
-├── TextInputNode.tsx       # Tekstinsyöttö node
-├── ToolbarNode.tsx         # Työkalupalkki node
-├── initial-elements.ts     # Node- ja edge-data
-├── xy-theme.css           # React Flow tyylitiedosto
-├── index.css              # Globaalit tyylit
-└── App.tsx                # Pääsovellus
+├── node components/
+│   ├── TextNode.tsx           # Rich text node
+│   ├── LinkNode.tsx          # URL preview with metadata
+│   ├── ImageNode.tsx         # Image display
+│   ├── NoteNode.tsx          # Colored sticky notes
+│   ├── DocumentNode.tsx      # Complex document node
+│   ├── VideoNode.tsx         # Video embedding
+│   ├── IframeNode.tsx        # Web content embedding
+│   ├── MarkdownNode.tsx      # Markdown rendering
+│   └── SketchNode.tsx        # Drawing functionality
+├── services/
+│   ├── ClipboardService.ts   # Clipboard integration
+│   ├── CanvasSerializer.ts   # JSON export/import
+│   └── MetadataService.ts    # OpenGraph metadata
+├── OverviewFlow.tsx          # Main React Flow component
+├── ButtonEdge.tsx            # Custom edge with delete button
+├── Sidebar.tsx               # Drag & drop sidebar
+├── initial-elements.ts       # Sample data
+├── index.css                 # Global styles
+└── App.tsx                   # Main application
 ```
 
-Sovellus käynnistyy automaattisesti osoitteessa http://localhost:5173/
+## Keyboard Shortcuts
+
+- **Ctrl+V**: Paste from clipboard (URLs, images, text)
+- **Ctrl+E**: Export canvas to JSON
+- **Ctrl+O**: Import canvas from JSON file
+
+The application starts automatically at http://localhost:5174/
 ```
