@@ -16,10 +16,23 @@ const SketchNode: React.FC<SketchNodeProps> = ({ data }) => {
   const [isDrawing, setIsDrawing] = useState(false);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const ctxRef = useRef<CanvasRenderingContext2D | null>(null);
+  const nodeRef = useRef<HTMLDivElement>(null);
 
-  useEffect(() => {
+  const initializeCanvas = () => {
     const canvas = canvasRef.current;
-    if (canvas) {
+    const node = nodeRef.current;
+    if (canvas && node) {
+      // Get node dimensions and calculate canvas size
+      const nodeRect = node.getBoundingClientRect();
+      const canvasWidth = Math.max(400, nodeRect.width - 24); // Account for padding
+      const canvasHeight = Math.max(300, nodeRect.height - 80); // Account for header and padding
+      
+      // Set canvas size (both display and internal dimensions)
+      canvas.style.width = canvasWidth + 'px';
+      canvas.style.height = canvasHeight + 'px';
+      canvas.width = canvasWidth;
+      canvas.height = canvasHeight;
+      
       const ctx = canvas.getContext('2d');
       if (ctx) {
         ctx.lineCap = 'round';
@@ -31,8 +44,32 @@ const SketchNode: React.FC<SketchNodeProps> = ({ data }) => {
         // Clear canvas with white background
         ctx.fillStyle = 'white';
         ctx.fillRect(0, 0, canvas.width, canvas.height);
+        
+        console.log('Canvas initialized:', { width: canvas.width, height: canvas.height });
       }
     }
+  };
+
+  useEffect(() => {
+    // Initialize canvas after component mounts with a longer delay for proper sizing
+    const timer = setTimeout(initializeCanvas, 200);
+    
+    // Add resize observer to handle node resizing
+    const node = nodeRef.current;
+    if (node && window.ResizeObserver) {
+      const resizeObserver = new ResizeObserver(() => {
+        // Debounce the resize to avoid too many redraws
+        setTimeout(initializeCanvas, 100);
+      });
+      resizeObserver.observe(node);
+      
+      return () => {
+        resizeObserver.disconnect();
+        clearTimeout(timer);
+      };
+    }
+    
+    return () => clearTimeout(timer);
   }, []);
 
   const startDrawing = (e: React.MouseEvent<HTMLCanvasElement>) => {
@@ -40,12 +77,18 @@ const SketchNode: React.FC<SketchNodeProps> = ({ data }) => {
     const ctx = ctxRef.current;
     if (!canvas || !ctx) return;
     
+    // Prevent all event propagation to stop React Flow dragging
     e.preventDefault();
     e.stopPropagation();
+    e.nativeEvent.stopImmediatePropagation();
     
     const rect = canvas.getBoundingClientRect();
-    const x = e.clientX - rect.left;
-    const y = e.clientY - rect.top;
+    const scaleX = canvas.width / rect.width;
+    const scaleY = canvas.height / rect.height;
+    const x = (e.clientX - rect.left) * scaleX;
+    const y = (e.clientY - rect.top) * scaleY;
+    
+    console.log('Start drawing at:', { x, y, canvasSize: { width: canvas.width, height: canvas.height } });
     
     setIsDrawing(true);
     ctx.beginPath();
@@ -70,10 +113,13 @@ const SketchNode: React.FC<SketchNodeProps> = ({ data }) => {
     
     e.preventDefault();
     e.stopPropagation();
+    e.nativeEvent.stopImmediatePropagation();
     
     const rect = canvas.getBoundingClientRect();
-    const x = e.clientX - rect.left;
-    const y = e.clientY - rect.top;
+    const scaleX = canvas.width / rect.width;
+    const scaleY = canvas.height / rect.height;
+    const x = (e.clientX - rect.left) * scaleX;
+    const y = (e.clientY - rect.top) * scaleY;
     
     ctx.lineTo(x, y);
     ctx.stroke();
@@ -140,8 +186,8 @@ const SketchNode: React.FC<SketchNodeProps> = ({ data }) => {
   };
 
   return (
-    <div className="sketch-node">
-      <NodeResizer minWidth={300} minHeight={250} />
+    <div ref={nodeRef} className="sketch-node">
+      <NodeResizer minWidth={450} minHeight={400} />
       <Handle type="target" position={Position.Top} />
       
       <div className="sketch-header">
@@ -214,14 +260,20 @@ const SketchNode: React.FC<SketchNodeProps> = ({ data }) => {
       <canvas 
         ref={canvasRef}
         className="sketch-canvas"
-        width={280}
-        height={200}
         onMouseDown={startDrawing}
         onMouseMove={draw}
         onMouseUp={stopDrawing}
         onMouseLeave={stopDrawing}
-        onClick={(e) => e.stopPropagation()}
-        style={{ pointerEvents: 'auto' }}
+        onClick={(e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          e.nativeEvent.stopImmediatePropagation();
+        }}
+        onContextMenu={(e) => e.preventDefault()}
+        style={{ 
+          pointerEvents: 'auto',
+          touchAction: 'none'
+        }}
       />
       
       <Handle type="source" position={Position.Bottom} />

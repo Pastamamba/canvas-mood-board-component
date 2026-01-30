@@ -30,6 +30,7 @@ import NoteNode from './NoteNode';
 import DocumentNode from './DocumentNode';
 import VideoNode from './VideoNode';
 import IframeNode from './IframeNode';
+import SketchNode from './SketchNode';
 import MarkdownNode from './MarkdownNode';
 import Sidebar from './Sidebar';
 import { clipboardService } from './ClipboardService';
@@ -48,6 +49,7 @@ const nodeTypes = {
   documentNode: DocumentNode,
   videoNode: VideoNode,
   iframeNode: IframeNode,
+  sketchNode: SketchNode,
   markdownNode: MarkdownNode,
 };
 
@@ -99,6 +101,17 @@ const OverviewFlow = () => {
           type,
           position,
           data: getDefaultNodeData(type),
+          // Add default styles for different node types
+          style: type === 'sketchNode' ? { width: 450, height: 400 } : 
+                 type === 'textNode' ? { width: 300, height: 200 } :
+                 type === 'noteNode' ? { width: 200, height: 120 } :
+                 type === 'imageNode' ? { width: 300, height: 250 } :
+                 type === 'linkNode' ? { width: 350, height: 150 } :
+                 type === 'videoNode' ? { width: 400, height: 300 } :
+                 type === 'documentNode' ? { width: 350, height: 400 } :
+                 type === 'iframeNode' ? { width: 400, height: 300 } :
+                 type === 'markdownNode' ? { width: 350, height: 250 } :
+                 undefined
         };
 
         setNodes((nds) => nds.concat(newNode));

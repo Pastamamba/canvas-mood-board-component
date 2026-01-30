@@ -242,6 +242,18 @@ interface NodeData {
     style: { width: 180, height: 100 }
   },
 
+  // Sketch Node - Interactive drawing canvas
+  {
+    id: '18',
+    type: 'sketchNode',
+    position: { x: 850, y: 700 },
+    data: {
+      title: 'UI Mockup Sketch',
+      drawing: ''
+    },
+    style: { width: 450, height: 350 }
+  },
+
   // Additional Text Node with different styling
   {
     id: '16',
