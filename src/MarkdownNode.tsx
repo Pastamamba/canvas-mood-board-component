@@ -32,7 +32,7 @@ function MarkdownNode({ data, selected }: MarkdownNodeProps) {
   };
 
   return (
-    <div className="markdown-node-container">
+    <div className="markdown-node-container" style={{ width: '100%', height: '100%' }}>
       {selected && <NodeResizer minWidth={300} minHeight={200} />}
       <Handle type="target" position={Position.Top} className="custom-handle" />
       

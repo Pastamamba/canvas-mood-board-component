@@ -15,7 +15,7 @@ function NoteNode({ data, selected }: NoteNodeProps) {
   const [isEditing, setIsEditing] = useState(false);
 
   return (
-    <div className={`note-node-container note-${color}`}>
+    <div className={`note-node-container note-${color}`} style={{ width: '100%', height: '100%' }}>
       {selected && <NodeResizer minWidth={150} minHeight={100} />}
       <Handle type="target" position={Position.Top} className="custom-handle" />
       

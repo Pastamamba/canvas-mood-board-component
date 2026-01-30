@@ -35,7 +35,7 @@ function IframeNode({ data, selected }: IframeNodeProps) {
   };
 
   return (
-    <div className="iframe-node-container">
+    <div className="iframe-node-container" style={{ width: '100%', height: '100%' }}>
       {selected && <NodeResizer minWidth={400} minHeight={300} />}
       <Handle type="target" position={Position.Top} className="custom-handle" />
       
@@ -102,8 +102,11 @@ function IframeNode({ data, selected }: IframeNodeProps) {
             src={url}
             className="iframe-content"
             title={title}
+            width="100%"
+            height="100%"
             onError={() => setError(true)}
             sandbox="allow-scripts allow-same-origin allow-forms allow-popups"
+            style={{ border: 'none', width: '100%', height: '100%' }}
           />
         ) : (
           <div className="iframe-placeholder">

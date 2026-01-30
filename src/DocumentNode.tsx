@@ -37,7 +37,7 @@ function DocumentNode({ data, selected }: DocumentNodeProps) {
   };
 
   return (
-    <div className="document-node-container">
+    <div className="document-node-container" style={{ width: '100%', height: '100%' }}>
       {selected && <NodeResizer minWidth={250} minHeight={150} />}
       <Handle type="target" position={Position.Top} className="custom-handle" />
       

@@ -27,7 +27,7 @@ function TextNode({ data, selected }: TextNodeProps) {
   };
 
   return (
-    <div className="text-node-container">
+    <div className="text-node-container" style={{ width: '100%', height: '100%' }}>
       {selected && <NodeResizer minWidth={100} minHeight={60} />}
       <Handle type="target" position={Position.Top} className="custom-handle" />
       

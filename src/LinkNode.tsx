@@ -43,7 +43,7 @@ function LinkNode({ data, selected }: LinkNodeProps) {
   };
 
   return (
-    <div className="link-node-container">      {selected && <NodeResizer minWidth={200} minHeight={80} />}      <Handle type="target" position={Position.Left} className="custom-handle" />
+    <div className="link-node-container" style={{ width: '100%', height: '100%' }}>      {selected && <NodeResizer minWidth={200} minHeight={80} />}      <Handle type="target" position={Position.Left} className="custom-handle" />
       
       <div className="link-node-content">
         {/* Title */}

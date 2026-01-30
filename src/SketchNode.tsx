@@ -187,7 +187,7 @@ const SketchNode: React.FC<SketchNodeProps> = ({ data, selected }) => {
   };
 
   return (
-    <div ref={nodeRef} className="sketch-node">
+    <div ref={nodeRef} className="sketch-node" style={{ width: '100%', height: '100%' }}>
       {selected && <NodeResizer minWidth={450} minHeight={400} />}
       <Handle type="target" position={Position.Top} />
       

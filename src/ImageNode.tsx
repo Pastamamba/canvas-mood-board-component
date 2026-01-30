@@ -25,7 +25,7 @@ function ImageNode({ data, selected }: ImageNodeProps) {
   };
 
   return (
-    <div className="image-node-container">
+    <div className="image-node-container" style={{ width: '100%', height: '100%' }}>
       {selected && <NodeResizer minWidth={200} minHeight={150} />}
       <Handle type="target" position={Position.Top} className="custom-handle" />
       

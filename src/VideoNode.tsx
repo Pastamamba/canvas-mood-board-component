@@ -36,7 +36,7 @@ function VideoNode({ data, selected }: VideoNodeProps) {
   };
 
   return (
-    <div className="video-node-container">
+    <div className="video-node-container" style={{ width: '100%', height: '100%', display: 'flex', flexDirection: 'column' }}>
       {selected && <NodeResizer minWidth={300} minHeight={200} />}
       <Handle type="target" position={Position.Top} className="custom-handle" />
       
@@ -82,14 +82,14 @@ function VideoNode({ data, selected }: VideoNodeProps) {
       {/* Video Player/Thumbnail */}
       <div className="video-display">
         {url && isValidVideoUrl(url) && !error ? (
-          <div className="video-wrapper">
+          <div className="video-wrapper" style={{ width: '100%', height: '100%', minHeight: '180px' }}>
             <iframe
               src={getEmbedUrl(url)}
               className="video-iframe"
               allowFullScreen
               title={title}
               width="100%"
-              height="200"
+              height="100%"
               frameBorder="0"
               allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
               onError={() => setError(true)}
