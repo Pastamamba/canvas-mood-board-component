@@ -7,9 +7,10 @@ interface LinkNodeProps {
     url?: string;
     title?: string;
   };
+  selected?: boolean;
 }
 
-function LinkNode({ data }: LinkNodeProps) {
+function LinkNode({ data, selected }: LinkNodeProps) {
   const [url, setUrl] = useState(data.url || 'https://example.com');
   const [title, setTitle] = useState(data.title || 'Click to edit title');
   const [isEditingTitle, setIsEditingTitle] = useState(false);
@@ -42,7 +43,7 @@ function LinkNode({ data }: LinkNodeProps) {
   };
 
   return (
-    <div className="link-node-container">      <NodeResizer minWidth={200} minHeight={80} />      <Handle type="target" position={Position.Left} className="custom-handle" />
+    <div className="link-node-container">      {selected && <NodeResizer minWidth={200} minHeight={80} />}      <Handle type="target" position={Position.Left} className="custom-handle" />
       
       <div className="link-node-content">
         {/* Title */}

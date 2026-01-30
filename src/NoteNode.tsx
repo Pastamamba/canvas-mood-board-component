@@ -6,16 +6,17 @@ interface NoteNodeProps {
     note?: string;
     color?: string;
   };
+  selected?: boolean;
 }
 
-function NoteNode({ data }: NoteNodeProps) {
+function NoteNode({ data, selected }: NoteNodeProps) {
   const [note, setNote] = useState(data.note || 'Write your note here...');
   const [color, setColor] = useState(data.color || 'yellow');
   const [isEditing, setIsEditing] = useState(false);
 
   return (
     <div className={`note-node-container note-${color}`}>
-      <NodeResizer minWidth={150} minHeight={100} />
+      {selected && <NodeResizer minWidth={150} minHeight={100} />}
       <Handle type="target" position={Position.Top} className="custom-handle" />
       
       {/* Color picker */}

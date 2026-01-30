@@ -10,9 +10,10 @@ interface DocumentNodeProps {
     documentId?: string;
     content?: string;
   };
+  selected?: boolean;
 }
 
-function DocumentNode({ data }: DocumentNodeProps) {
+function DocumentNode({ data, selected }: DocumentNodeProps) {
   const [title, setTitle] = useState(data.title || 'New Document');
   const [isEditingTitle, setIsEditingTitle] = useState(false);
   const [categories] = useState(data.categories || []);
@@ -37,7 +38,7 @@ function DocumentNode({ data }: DocumentNodeProps) {
 
   return (
     <div className="document-node-container">
-      <NodeResizer minWidth={250} minHeight={150} />
+      {selected && <NodeResizer minWidth={250} minHeight={150} />}
       <Handle type="target" position={Position.Top} className="custom-handle" />
       
       <div className="document-header">

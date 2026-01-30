@@ -6,9 +6,10 @@ interface MarkdownNodeProps {
     content?: string;
     title?: string;
   };
+  selected?: boolean;
 }
 
-function MarkdownNode({ data }: MarkdownNodeProps) {
+function MarkdownNode({ data, selected }: MarkdownNodeProps) {
   const [content, setContent] = useState(data.content || '# New Note\n\nClick to edit...');
   const [title, setTitle] = useState(data.title || 'Markdown Note');
   const [isEditing, setIsEditing] = useState(false);
@@ -32,7 +33,7 @@ function MarkdownNode({ data }: MarkdownNodeProps) {
 
   return (
     <div className="markdown-node-container">
-      <NodeResizer minWidth={300} minHeight={200} />
+      {selected && <NodeResizer minWidth={300} minHeight={200} />}
       <Handle type="target" position={Position.Top} className="custom-handle" />
       
       <div className="markdown-header">

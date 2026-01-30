@@ -6,9 +6,10 @@ interface IframeNodeProps {
     url?: string;
     title?: string;
   };
+  selected?: boolean;
 }
 
-function IframeNode({ data }: IframeNodeProps) {
+function IframeNode({ data, selected }: IframeNodeProps) {
   const [url, setUrl] = useState(data.url || '');
   const [title, setTitle] = useState(data.title || 'Web View');
   const [isEditingUrl, setIsEditingUrl] = useState(false);
@@ -35,7 +36,7 @@ function IframeNode({ data }: IframeNodeProps) {
 
   return (
     <div className="iframe-node-container">
-      <NodeResizer minWidth={400} minHeight={300} />
+      {selected && <NodeResizer minWidth={400} minHeight={300} />}
       <Handle type="target" position={Position.Top} className="custom-handle" />
       
       {/* Title */}

@@ -5,9 +5,10 @@ interface TextNodeProps {
   data: {
     text?: string;
   };
+  selected?: boolean;
 }
 
-function TextNode({ data }: TextNodeProps) {
+function TextNode({ data, selected }: TextNodeProps) {
   const [text, setText] = useState(data.text || 'Click to edit text...');
   const [isEditing, setIsEditing] = useState(false);
 
@@ -27,7 +28,7 @@ function TextNode({ data }: TextNodeProps) {
 
   return (
     <div className="text-node-container">
-      <NodeResizer minWidth={100} minHeight={60} />
+      {selected && <NodeResizer minWidth={100} minHeight={60} />}
       <Handle type="target" position={Position.Top} className="custom-handle" />
       
       {isEditing ? (

@@ -1,10 +1,10 @@
 import { memo } from 'react';
 import { Handle, Position, NodeResizer } from '@xyflow/react';
 
-function ResizerNode({ data }: { data: any }) {
+function ResizerNode({ data, selected }: { data: any; selected?: boolean }) {
   return (
     <>
-      <NodeResizer minWidth={1} minHeight={1} />
+      {selected && <NodeResizer minWidth={1} minHeight={1} />}
       <Handle
         type="target"
         position={Position.Left}

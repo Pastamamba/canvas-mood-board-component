@@ -8,9 +8,10 @@ interface SketchNodeData {
 
 interface SketchNodeProps {
   data: SketchNodeData;
+  selected?: boolean;
 }
 
-const SketchNode: React.FC<SketchNodeProps> = ({ data }) => {
+const SketchNode: React.FC<SketchNodeProps> = ({ data, selected }) => {
   const [title, setTitle] = useState(data.title);
   const [currentTool, setCurrentTool] = useState<'pen' | 'eraser'>('pen');
   const [isDrawing, setIsDrawing] = useState(false);
@@ -187,7 +188,7 @@ const SketchNode: React.FC<SketchNodeProps> = ({ data }) => {
 
   return (
     <div ref={nodeRef} className="sketch-node">
-      <NodeResizer minWidth={450} minHeight={400} />
+      {selected && <NodeResizer minWidth={450} minHeight={400} />}
       <Handle type="target" position={Position.Top} />
       
       <div className="sketch-header">

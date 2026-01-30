@@ -6,9 +6,10 @@ interface ImageNodeProps {
     imageUrl?: string;
     caption?: string;
   };
+  selected?: boolean;
 }
 
-function ImageNode({ data }: ImageNodeProps) {
+function ImageNode({ data, selected }: ImageNodeProps) {
   const [imageUrl, setImageUrl] = useState(data.imageUrl || '');
   const [caption, setCaption] = useState(data.caption || 'Add caption...');
   const [isEditingCaption, setIsEditingCaption] = useState(false);
@@ -25,7 +26,7 @@ function ImageNode({ data }: ImageNodeProps) {
 
   return (
     <div className="image-node-container">
-      <NodeResizer minWidth={200} minHeight={150} />
+      {selected && <NodeResizer minWidth={200} minHeight={150} />}
       <Handle type="target" position={Position.Top} className="custom-handle" />
       
       <div className="image-node-content">

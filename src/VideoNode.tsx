@@ -7,9 +7,10 @@ interface VideoNodeProps {
     title?: string;
     thumbnail?: string;
   };
+  selected?: boolean;
 }
 
-function VideoNode({ data }: VideoNodeProps) {
+function VideoNode({ data, selected }: VideoNodeProps) {
   const [url, setUrl] = useState(data.url || '');
   const [title, setTitle] = useState(data.title || 'Video');
   const [isEditingUrl, setIsEditingUrl] = useState(false);
@@ -36,7 +37,7 @@ function VideoNode({ data }: VideoNodeProps) {
 
   return (
     <div className="video-node-container">
-      <NodeResizer minWidth={300} minHeight={200} />
+      {selected && <NodeResizer minWidth={300} minHeight={200} />}
       <Handle type="target" position={Position.Top} className="custom-handle" />
       
       {/* Title */}
