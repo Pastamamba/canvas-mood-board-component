@@ -144,8 +144,8 @@ const OverviewFlow = () => {
         event.preventDefault();
         
         try {
-          const clipboardContent = await navigator.clipboard.readText();
-          if (clipboardContent.trim()) {
+          const clipboardData = await clipboardService.readFromClipboard();
+          if (clipboardData && clipboardData.content.trim()) {
             const rect = reactFlowWrapper.current?.getBoundingClientRect();
             if (rect) {
               const centerX = rect.width / 2;
@@ -155,7 +155,11 @@ const OverviewFlow = () => {
                 y: centerY,
               });
               
-              const newNode = clipboardService.createNodeFromClipboard(clipboardContent, position);
+              const newNode = clipboardService.createNodeFromClipboard(
+                clipboardData.content, 
+                position, 
+                clipboardData.type === 'image'
+              );
               setNodes((nds) => nds.concat(newNode));
             }
           }

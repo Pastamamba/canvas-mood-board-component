@@ -38,7 +38,22 @@ class ClipboardService implements ClipboardHandler {
     }
   }
 
-  createNodeFromClipboard(content: string, position: { x: number; y: number }): Node {
+  createNodeFromClipboard(content: string, position: { x: number; y: number }, isImageData: boolean = false): Node {
+    // If it's image data (data URL), create image node directly
+    if (isImageData || content.startsWith('data:image/')) {
+      const nodeId = `image-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+      return {
+        id: nodeId,
+        type: 'imageNode',
+        position,
+        data: {
+          imageUrl: content,
+          caption: 'Pasted image',
+        },
+        style: { width: 300, height: 250 }
+      };
+    }
+    
     const contentType = this.detectContentType(content);
     const nodeId = `${contentType}-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
     
@@ -146,10 +161,46 @@ class ClipboardService implements ClipboardHandler {
     return markdownPatterns.some(pattern => pattern.test(content));
   }
 
-  async readFromClipboard(): Promise<string | null> {
+  async readFromClipboard(): Promise<{ type: 'text' | 'image'; content: string } | null> {
     try {
-      if (navigator.clipboard && navigator.clipboard.readText) {
-        return await navigator.clipboard.readText();
+      if (navigator.clipboard) {
+        // Try to read clipboard items (for images)
+        if (navigator.clipboard.read) {
+          try {
+            const items = await navigator.clipboard.read();
+            console.log('Clipboard items found:', items.length);
+            for (const item of items) {
+              console.log('Item types:', item.types);
+              // Check for image types
+              for (const type of item.types) {
+                if (type.startsWith('image/')) {
+                  console.log('Found image type:', type);
+                  const blob = await item.getType(type);
+                  console.log('Image blob size:', blob.size);
+                  // Convert blob to data URL
+                  return new Promise((resolve) => {
+                    const reader = new FileReader();
+                    reader.onload = () => {
+                      console.log('Image converted to data URL, length:', (reader.result as string).length);
+                      resolve({ type: 'image', content: reader.result as string });
+                    };
+                    reader.onerror = () => resolve(null);
+                    reader.readAsDataURL(blob);
+                  });
+                }
+              }
+            }
+          } catch (error) {
+            console.log('No image in clipboard, trying text...', error);
+          }
+        }
+        
+        // Fallback to text reading
+        if (navigator.clipboard.readText) {
+          const text = await navigator.clipboard.readText();
+          console.log('Text from clipboard:', text ? 'found' : 'empty');
+          return text ? { type: 'text', content: text } : null;
+        }
       }
       return null;
     } catch (error) {
@@ -159,10 +210,14 @@ class ClipboardService implements ClipboardHandler {
   }
 
   async pasteAndCreateNode(position: { x: number; y: number }): Promise<Node | null> {
-    const content = await this.readFromClipboard();
-    if (!content) return null;
+    const clipboardData = await this.readFromClipboard();
+    if (!clipboardData) return null;
     
-    return this.createNodeFromClipboard(content, position);
+    return this.createNodeFromClipboard(
+      clipboardData.content, 
+      position, 
+      clipboardData.type === 'image'
+    );
   }
 }
 
