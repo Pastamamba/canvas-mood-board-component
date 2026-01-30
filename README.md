@@ -1,36 +1,76 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# React Flow Canvas Project
 
-## Getting Started
+Interaktiivinen React Flow -sovellus, joka sisältää erilaisia mukautettuja node- ja edge-tyyppejä.
 
-First, run the development server:
+## Ominaisuudet
 
+- **Custom Node Types:**
+  - AnnotationNode - Selitykset ja merkinnät
+  - ToolbarNode - Työkalupalkki emojivalitsimella
+  - ResizerNode - Koon muutettava node
+  - CircleNode - Pyöreä node
+  - TextInputNode - Tekstinsyöttökomponentti
+
+- **Custom Edge Types:**
+  - ButtonEdge - Klikkattavat edget poistopainikkeella
+
+- **Ominaisuudet:**
+  - Drag & drop
+  - Zoomaus ja panorointi
+  - Minimap
+  - Controls-palkki
+  - Background-ruudukko
+  - TypeScript-tuki
+  - ESLint-konfigurointi
+  - Tailwind CSS (valmis käyttöön)
+
+## Käyttö
+
+### Kehityspalvelimen käynnistys
 ```bash
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+### Build tuotantoon
+```bash
+npm run build
+```
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+### ESLint-tarkistus
+```bash
+npm run lint
+```
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+### Esikatselun avaaminen buildista
+```bash
+npm run preview
+```
 
-## Learn More
+## Teknologiat
 
-To learn more about Next.js, take a look at the following resources:
+- React 18
+- TypeScript
+- @xyflow/react (React Flow)
+- Vite
+- ESLint
+- Tailwind CSS (konfiguroitu)
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## Projektisrakenne
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+```
+src/
+├── AnnotationNode.tsx      # Annotation node komponentti
+├── ButtonEdge.tsx          # Custom edge klikkauspainikkeella
+├── CircleNode.tsx          # Pyöreä node
+├── OverviewFlow.tsx        # Pää-React Flow komponentti
+├── ResizerNode.tsx         # Koon muutettava node
+├── TextInputNode.tsx       # Tekstinsyöttö node
+├── ToolbarNode.tsx         # Työkalupalkki node
+├── initial-elements.ts     # Node- ja edge-data
+├── xy-theme.css           # React Flow tyylitiedosto
+├── index.css              # Globaalit tyylit
+└── App.tsx                # Pääsovellus
+```
 
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+Sovellus käynnistyy automaattisesti osoitteessa http://localhost:5173/
+```
