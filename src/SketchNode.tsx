@@ -185,6 +185,9 @@ const SketchNode: React.FC<SketchNodeProps> = ({ data, selected }) => {
     const ctx = ctxRef.current;
     if (!canvas || !ctx) return;
     
+    // Only draw with left mouse button (button 0)
+    if (e.button !== 0) return;
+    
     e.preventDefault();
     e.stopPropagation();
     e.nativeEvent.stopImmediatePropagation();
@@ -305,7 +308,7 @@ const SketchNode: React.FC<SketchNodeProps> = ({ data, selected }) => {
       
       <canvas 
         ref={canvasRef}
-        className="sketch-canvas"
+        className="sketch-canvas nodrag"
         onMouseDown={startDrawing}
         onMouseMove={draw}
         onMouseUp={stopDrawing}
