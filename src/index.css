@@ -89,12 +89,32 @@ body {
   background-color: #3b82f6;
 }
 
+.document-icon {
+  background-color: #059669;
+}
+
+.markdown-icon {
+  background-color: #7c3aed;
+}
+
 .link-icon {
   background-color: #10b981;
 }
 
+.video-icon {
+  background-color: #dc2626;
+}
+
+.iframe-icon {
+  background-color: #0891b2;
+}
+
 .image-icon {
   background-color: #8b5cf6;
+}
+
+.sketch-icon {
+  background-color: #ea580c;
 }
 
 .note-icon {
