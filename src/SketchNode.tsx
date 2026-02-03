@@ -45,8 +45,6 @@ const SketchNode: React.FC<SketchNodeProps> = ({ data, selected }) => {
         // Clear canvas with white background
         ctx.fillStyle = 'white';
         ctx.fillRect(0, 0, canvas.width, canvas.height);
-        
-        console.log('Canvas initialized:', { width: canvas.width, height: canvas.height });
       }
     }
   };
@@ -88,8 +86,6 @@ const SketchNode: React.FC<SketchNodeProps> = ({ data, selected }) => {
     const scaleY = canvas.height / rect.height;
     const x = (e.clientX - rect.left) * scaleX;
     const y = (e.clientY - rect.top) * scaleY;
-    
-    console.log('Start drawing at:', { x, y, canvasSize: { width: canvas.width, height: canvas.height } });
     
     setIsDrawing(true);
     ctx.beginPath();
@@ -172,7 +168,7 @@ const SketchNode: React.FC<SketchNodeProps> = ({ data, selected }) => {
     
     // Also store in node data for serialization
     if (typeof window !== 'undefined') {
-      console.log('Sketch saved as attachment:', attachment);
+      // Sketch data is ready for serialization
     }
   };
 

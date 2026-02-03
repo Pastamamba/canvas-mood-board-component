@@ -168,20 +168,15 @@ class ClipboardService implements ClipboardHandler {
         if (navigator.clipboard.read) {
           try {
             const items = await navigator.clipboard.read();
-            console.log('Clipboard items found:', items.length);
             for (const item of items) {
-              console.log('Item types:', item.types);
               // Check for image types
               for (const type of item.types) {
                 if (type.startsWith('image/')) {
-                  console.log('Found image type:', type);
                   const blob = await item.getType(type);
-                  console.log('Image blob size:', blob.size);
                   // Convert blob to data URL
                   return new Promise((resolve) => {
                     const reader = new FileReader();
                     reader.onload = () => {
-                      console.log('Image converted to data URL, length:', (reader.result as string).length);
                       resolve({ type: 'image', content: reader.result as string });
                     };
                     reader.onerror = () => resolve(null);
@@ -191,14 +186,13 @@ class ClipboardService implements ClipboardHandler {
               }
             }
           } catch (error) {
-            console.log('No image in clipboard, trying text...', error);
+            // No image in clipboard, trying text fallback
           }
         }
         
         // Fallback to text reading
         if (navigator.clipboard.readText) {
           const text = await navigator.clipboard.readText();
-          console.log('Text from clipboard:', text ? 'found' : 'empty');
           return text ? { type: 'text', content: text } : null;
         }
       }
