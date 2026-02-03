@@ -27,7 +27,7 @@ function TextNode({ data, selected }: TextNodeProps) {
   };
 
   return (
-    <div className="text-node-container" style={{ width: '100%', height: '100%' }}>
+    <div className={`text-node-container node-container ${isEditing ? 'editing' : ''}`} style={{ width: '100%', height: '100%' }}>
       {selected && <NodeResizer minWidth={100} minHeight={60} />}
       <Handle type="target" position={Position.Top} className="custom-handle" />
       
@@ -36,14 +36,20 @@ function TextNode({ data, selected }: TextNodeProps) {
           value={text}
           onChange={(e) => setText(e.target.value)}
           onBlur={handleBlur}
-          onKeyPress={handleKeyPress}
+          onKeyDown={handleKeyPress}
           className="text-node-textarea"
           autoFocus
+          placeholder="Enter your text..."
+          aria-label="Node text content"
         />
       ) : (
         <div 
           onClick={handleClick}
-          className="text-node-content"
+          className="text-node-content node-body"
+          role="button"
+          tabIndex={0}
+          onKeyDown={(e) => e.key === 'Enter' && setIsEditing(true)}
+          aria-label="Click to edit text"
         >
           {text}
         </div>

@@ -1,6 +1,7 @@
 import { memo, useState, useEffect } from 'react';
 import { Handle, Position, NodeResizer } from '@xyflow/react';
 import { MetadataService, type OpenGraphData } from './MetadataService';
+import { LoadingSpinner, Input } from './UIComponents';
 
 interface LinkNodeProps {
   data: {
@@ -48,23 +49,29 @@ function LinkNode({ data, selected }: LinkNodeProps) {
   };
 
   return (
-    <div className="link-node-container" style={{ width: '100%', height: '100%' }}>      {selected && <NodeResizer minWidth={200} minHeight={80} />}      <Handle type="target" position={Position.Left} className="custom-handle" />
+    <div className={`link-node-container node-container ${isLoadingMetadata ? 'loading' : ''}`} style={{ width: '100%', height: '100%' }}>
+      {selected && <NodeResizer minWidth={200} minHeight={80} />}
+      <Handle type="target" position={Position.Left} className="custom-handle" />
       
       <div className="link-node-content">
         {/* Title */}
         {isEditingTitle ? (
-          <input
+          <Input
             value={title}
-            onChange={(e) => setTitle(e.target.value)}
+            onChange={setTitle}
             onBlur={() => setIsEditingTitle(false)}
-            onKeyPress={(e) => e.key === 'Enter' && setIsEditingTitle(false)}
-            className="link-title-input"
+            onKeyDown={(e) => e.key === 'Enter' && setIsEditingTitle(false)}
+            placeholder="Enter link title"
             autoFocus
+            aria-label="Link title"
           />
         ) : (
           <div 
             onClick={() => setIsEditingTitle(true)}
-            className="link-title"
+            className="link-title node-title-medium"
+            role="button"
+            tabIndex={0}
+            onKeyDown={(e) => e.key === 'Enter' && setIsEditingTitle(true)}
           >
             {title}
           </div>
@@ -72,18 +79,22 @@ function LinkNode({ data, selected }: LinkNodeProps) {
         
         {/* URL */}
         {isEditingUrl ? (
-          <input
+          <Input
             value={url}
-            onChange={(e) => setUrl(e.target.value)}
+            onChange={setUrl}
             onBlur={() => setIsEditingUrl(false)}
-            onKeyPress={(e) => e.key === 'Enter' && setIsEditingUrl(false)}
-            className="link-url-input"
+            onKeyDown={(e) => e.key === 'Enter' && setIsEditingUrl(false)}
+            placeholder="Enter URL"
             autoFocus
+            aria-label="Link URL"
           />
         ) : (
           <div 
             onClick={() => setIsEditingUrl(true)}
-            className="link-url"
+            className="link-url node-caption"
+            role="button"
+            tabIndex={0}
+            onKeyDown={(e) => e.key === 'Enter' && setIsEditingUrl(true)}
           >
             {url}
           </div>
@@ -91,7 +102,9 @@ function LinkNode({ data, selected }: LinkNodeProps) {
         
         {/* Link button with metadata preview */}
         {isLoadingMetadata ? (
-          <div className="link-loading">🔄 Loading preview...</div>
+          <div className="link-loading">
+            <LoadingSpinner size="sm" message="Loading preview..." />
+          </div>
         ) : metadata && metadata.image ? (
           <div className="link-preview-container" onClick={handleLinkClick}>
             <img 
