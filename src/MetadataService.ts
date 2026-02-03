@@ -39,7 +39,9 @@ export class MetadataService {
       // Manage cache size (LRU eviction)
       if (this.cache.size >= this.maxCacheSize) {
         const firstKey = this.cache.keys().next().value;
-        this.cache.delete(firstKey);
+        if (firstKey) {
+          this.cache.delete(firstKey);
+        }
       }
       
       // Cache the result
@@ -59,7 +61,9 @@ export class MetadataService {
       // Manage cache size before adding
       if (this.cache.size >= this.maxCacheSize) {
         const firstKey = this.cache.keys().next().value;
-        this.cache.delete(firstKey);
+        if (firstKey) {
+          this.cache.delete(firstKey);
+        }
       }
       
       this.cache.set(url, basicMetadata);
