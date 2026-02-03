@@ -1,4 +1,4 @@
-import { memo, useState, useCallback, useEffect, useRef } from 'react';
+import { memo, useState, useCallback, useRef } from 'react';
 import { Handle, Position, NodeResizer, useReactFlow } from '@xyflow/react';
 import { FileDropZone } from './AdvancedUIComponents';
 
@@ -111,7 +111,7 @@ function ImageNode({ id, data, selected }: ImageNodeProps) {
           : node
       )
     );
-  }, [id, setNodes]);
+  }, [id, setNodes, caption]);
 
   return (
     <div 

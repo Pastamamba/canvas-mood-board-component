@@ -1,4 +1,5 @@
 import { memo, useState, useCallback, useMemo } from 'react';
+import type { JSX } from 'react';
 import { Handle, Position, NodeResizer } from '@xyflow/react';
 import { CollapsibleSection, SmartTruncate } from './InformationComponents';
 
@@ -98,10 +99,10 @@ function MarkdownNode({ data, selected }: MarkdownNodeProps) {
 
   const readingTime = Math.ceil(documentStats.words / 200); // ~200 words per minute
 
-  // Render table of contents tree
+  // Render table of contents tree - moved before usage
   const renderTOCTree = useCallback((headings: HeadingNode[], depth = 0): JSX.Element[] => {
-    return headings.map((heading) => (
-      <div key={heading.id} className={`toc-item level-${heading.level}`} style={{ marginLeft: `${depth * 12}px` }}>
+    const renderTreeNode = (heading: HeadingNode, currentDepth: number): JSX.Element => (
+      <div key={heading.id} className={`toc-item level-${heading.level}`} style={{ marginLeft: `${currentDepth * 12}px` }}>
         <button
           className="toc-link"
           onClick={(e) => {
@@ -113,9 +114,11 @@ function MarkdownNode({ data, selected }: MarkdownNodeProps) {
         >
           {'#'.repeat(heading.level)} {heading.title}
         </button>
-        {heading.children.length > 0 && renderTOCTree(heading.children, depth + 1)}
+        {heading.children.length > 0 && heading.children.map(child => renderTreeNode(child, currentDepth + 1))}
       </div>
-    ));
+    );
+
+    return headings.map((heading) => renderTreeNode(heading, depth));
   }, []);
 
   // Safe markdown to React elements converter
@@ -172,6 +175,7 @@ function MarkdownNode({ data, selected }: MarkdownNodeProps) {
     flushList();
     return elements;
   }, []);
+
   return (
     <div className="markdown-node-container node-container">
       {selected && <NodeResizer minWidth={300} minHeight={200} />}

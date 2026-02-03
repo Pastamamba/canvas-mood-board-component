@@ -4,7 +4,7 @@ import {
   EdgeLabelRenderer,
   getBezierPath,
   useReactFlow,
-  EdgeProps,
+  type EdgeProps,
   Position,
 } from '@xyflow/react';
 

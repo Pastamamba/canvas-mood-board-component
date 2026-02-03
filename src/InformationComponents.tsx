@@ -144,7 +144,7 @@ export const SmartTruncate: React.FC<SmartTruncateProps> = ({
 };
 
 interface DataHierarchyProps {
-  data: Record<string, any>;
+  data: Record<string, unknown>;
   level?: number;
   maxDepth?: number;
   collapseLongArrays?: number;
@@ -170,7 +170,7 @@ export const DataHierarchy: React.FC<DataHierarchyProps> = ({
     });
   }, []);
 
-  const renderValue = (key: string, value: any): React.ReactNode => {
+  const renderValue = (key: string, value: unknown): React.ReactNode => {
     const keyId = `${level}-${key}`;
     
     if (value === null || value === undefined) {
@@ -267,7 +267,7 @@ export const DataHierarchy: React.FC<DataHierarchyProps> = ({
       
       return (
         <DataHierarchy
-          data={value}
+          data={value as Record<string, unknown>}
           level={level + 1}
           maxDepth={maxDepth}
           collapseLongArrays={collapseLongArrays}
@@ -312,7 +312,7 @@ export const DataHierarchy: React.FC<DataHierarchyProps> = ({
 interface InfoPanelProps {
   title: string;
   subtitle?: string;
-  metadata?: Record<string, any>;
+  metadata?: Record<string, unknown>;
   children: React.ReactNode;
   actions?: React.ReactNode;
   variant?: 'default' | 'compact' | 'detailed';

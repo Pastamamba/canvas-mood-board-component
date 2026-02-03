@@ -75,13 +75,47 @@ const OverviewFlow = () => {
 
   const onConnect = useCallback(
     (params: Connection | Edge) => setEdges((eds) => addEdge(params, eds)),
-    [],
+    [setEdges],
   );
 
   const onPaneClick = useCallback(() => {
     // Deselect all nodes when clicking on empty pane
     setNodes((nds) => nds.map((node) => ({ ...node, selected: false })));
-  }, []); // Remove setNodes dependency as it's stable from React Flow
+  }, [setNodes]);
+
+  // Default node data factory - moved before usage
+  const getDefaultNodeData = useCallback((nodeType: string) => {
+    switch (nodeType) {
+      case 'textNode':
+        return { text: 'New text node' };
+      case 'linkNode':
+        return { url: 'https://example.com', title: 'New Link' };
+      case 'imageNode':
+        return { imageUrl: '', caption: 'New image' };
+      case 'noteNode':
+        return { note: 'New note...', color: 'yellow' };
+      case 'documentNode':
+        return { 
+          title: 'New Document',
+          categories: [],
+          actors: [],
+          attachments: [],
+          content: ''
+        };
+      case 'videoNode':
+        return { url: '', title: 'New Video' };
+      case 'iframeNode':
+        return { url: '', title: 'Web View' };
+      case 'sketchNode':
+        return { title: 'New Sketch', drawing: '' };
+      case 'markdownNode':
+        return { content: '# New Note\n\nClick to edit...', title: 'Markdown Note' };
+      case 'groupNode':
+        return { label: 'Group', backgroundColor: 'rgba(99, 102, 241, 0.1)' };
+      default:
+        return {};
+    }
+  }, []);
 
   const onDragOver = useCallback((event: React.DragEvent) => {
     event.preventDefault();
@@ -126,7 +160,7 @@ const OverviewFlow = () => {
         setNodes((nds) => nds.concat(newNode));
       }
     },
-    [reactFlowInstance, setNodes],
+    [reactFlowInstance, setNodes, getDefaultNodeData],
   );
 
   // Export/Import functions
@@ -194,41 +228,8 @@ const OverviewFlow = () => {
     };
   }, [handleKeyDown]);
 
-  const getDefaultNodeData = (nodeType: string) => {
-    switch (nodeType) {
-      case 'textNode':
-        return { text: 'New text node' };
-      case 'linkNode':
-        return { url: 'https://example.com', title: 'New Link' };
-      case 'imageNode':
-        return { imageUrl: '', caption: 'New image' };
-      case 'noteNode':
-        return { note: 'New note...', color: 'yellow' };
-      case 'documentNode':
-        return { 
-          title: 'New Document',
-          categories: [],
-          actors: [],
-          attachments: [],
-          content: ''
-        };
-      case 'videoNode':
-        return { url: '', title: 'New Video' };
-      case 'iframeNode':
-        return { url: '', title: 'Web View' };
-      case 'sketchNode':
-        return { title: 'New Sketch', drawing: '' };
-      case 'markdownNode':
-        return { content: '# New Note\\n\\nClick to edit...', title: 'Markdown Note' };
-      case 'groupNode':
-        return { label: 'Group', backgroundColor: 'rgba(99, 102, 241, 0.1)' };
-      default:
-        return {};
-    }
-  };
-
   // Node drag and drop grouping functionality
-  const onNodeDragStop = useCallback((_event: any, node: Node) => {
+  const onNodeDragStop = useCallback((_event: React.MouseEvent, node: Node) => {
     // Check if node was dropped on a group node
     const groupNodes = nodes.filter(n => n.type === 'groupNode' && n.id !== node.id);
     

@@ -1,16 +1,15 @@
 import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { Handle, Position, NodeResizer } from '@xyflow/react';
+import { AdvancedDrawingToolbar } from './AdvancedDrawingTools';
 import { 
-  AdvancedDrawingToolbar, 
-  DrawingState, 
-  DrawingHistoryManager,
+  type DrawingState, 
+  type DrawingHistoryManager,
   createHistoryManager,
   saveDrawingState,
   undoDrawing,
   redoDrawing,
-  drawShape,
-  type DrawingTool
-} from './AdvancedDrawingTools';
+  drawShape
+} from './DrawingUtils';
 
 interface SketchNodeData {
   title: string;
@@ -179,7 +178,7 @@ const SketchNode: React.FC<SketchNodeProps> = ({ data, selected }) => {
     }
     
     return () => clearTimeout(timer);
-  }, []);
+  }, [initializeCanvas]);
 
   const startDrawing = useCallback((e: React.MouseEvent<HTMLCanvasElement>) => {
     const canvas = canvasRef.current;

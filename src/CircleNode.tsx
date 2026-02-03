@@ -6,7 +6,7 @@ interface CircleNodeProps {
   positionAbsoluteY: number;
 }
 
-export default memo(({ positionAbsoluteX, positionAbsoluteY }: CircleNodeProps) => {
+const CircleNode = memo(({ positionAbsoluteX, positionAbsoluteY }: CircleNodeProps) => {
   const label = `Position x:${Math.round(positionAbsoluteX)} y:${Math.round(positionAbsoluteY)}`;
 
   return (
@@ -20,3 +20,5 @@ export default memo(({ positionAbsoluteX, positionAbsoluteY }: CircleNodeProps) 
     </div>
   );
 });
+
+export default CircleNode;

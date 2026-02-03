@@ -14,7 +14,10 @@ function AnnotationNode({ data }: { data: AnnotationNodeData }) {
         <div>{data.label}</div>
       </div>
       {data.arrowStyle && (
-        <div className="annotation-arrow" style={data.arrowStyle}>
+        <div 
+          className="annotation-arrow" 
+          style={typeof data.arrowStyle === 'string' ? {} : data.arrowStyle}
+        >
           ⤹
         </div>
       )}

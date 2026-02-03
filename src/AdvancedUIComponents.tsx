@@ -1,11 +1,10 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 
 interface RichTextToolbarProps {
-  onFormat: (command: string, value?: string) => void;
   onInsert: (text: string) => void;
 }
 
-export const RichTextToolbar: React.FC<RichTextToolbarProps> = ({ onFormat, onInsert }) => {
+export const RichTextToolbar: React.FC<RichTextToolbarProps> = ({ onInsert }) => {
   const [showLinkDialog, setShowLinkDialog] = useState(false);
   const [linkUrl, setLinkUrl] = useState('');
 
@@ -90,7 +89,6 @@ interface FileDropZoneProps {
 export const FileDropZone: React.FC<FileDropZoneProps> = ({ 
   onFileDrop, 
   children, 
-  accept = 'image/*',
   className = '' 
 }) => {
   const [isDragging, setIsDragging] = useState(false);
@@ -156,20 +154,21 @@ export const SmartTextArea: React.FC<SmartTextAreaProps> = ({
   showToolbar = false,
   autoResize = true
 }) => {
-  const [textareaRef, setTextareaRef] = useState<HTMLTextAreaElement | null>(null);
-  const [selectionStart, setSelectionStart] = useState(0);
+  const textareaRef = useRef<HTMLTextAreaElement | null>(null);
 
   const handleInsert = (text: string) => {
-    if (textareaRef) {
-      const start = textareaRef.selectionStart;
-      const end = textareaRef.selectionEnd;
+    if (textareaRef.current) {
+      const start = textareaRef.current.selectionStart;
+      const end = textareaRef.current.selectionEnd;
       const newValue = value.substring(0, start) + text + value.substring(end);
       onChange(newValue);
       
       // Set cursor position after inserted text
       setTimeout(() => {
-        textareaRef.focus();
-        textareaRef.setSelectionRange(start + text.length, start + text.length);
+        if (textareaRef.current) {
+          textareaRef.current.focus();
+          textareaRef.current.setSelectionRange(start + text.length, start + text.length);
+        }
       }, 0);
     }
   };
@@ -199,32 +198,30 @@ export const SmartTextArea: React.FC<SmartTextAreaProps> = ({
     }
   };
 
-  const adjustHeight = () => {
-    if (autoResize && textareaRef) {
-      textareaRef.style.height = 'auto';
-      textareaRef.style.height = `${textareaRef.scrollHeight}px`;
+  const adjustHeight = React.useCallback(() => {
+    if (autoResize && textareaRef.current) {
+      textareaRef.current.style.height = 'auto';
+      textareaRef.current.style.height = `${textareaRef.current.scrollHeight}px`;
     }
-  };
+  }, [autoResize]);
 
   React.useEffect(() => {
     adjustHeight();
-  }, [value, textareaRef]);
+  }, [value, adjustHeight]);
 
   return (
     <div className="smart-textarea-container">
       {showToolbar && (
         <RichTextToolbar 
-          onFormat={() => {}} 
           onInsert={handleInsert}
         />
       )}
       <textarea
-        ref={setTextareaRef}
+        ref={textareaRef}
         value={value}
         onChange={(e) => onChange(e.target.value)}
         onBlur={onBlur}
         onKeyDown={handleKeyDown}
-        onSelect={(e) => setSelectionStart((e.target as HTMLTextAreaElement).selectionStart)}
         placeholder={placeholder}
         className={`smart-textarea ${className}`}
         rows={autoResize ? 1 : 4}

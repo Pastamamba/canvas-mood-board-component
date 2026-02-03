@@ -111,7 +111,7 @@ export class CanvasSerializer {
   }
 
   // Create nodes from external data
-  static createNodesFromData(nodeData: (Partial<Node> & { metadata?: { width?: number; height?: number; style?: any } })[]): Node[] {
+  static createNodesFromData(nodeData: (Partial<Node> & { metadata?: { width?: number; height?: number; style?: Record<string, unknown> } })[]): Node[] {
     return nodeData.map(item => ({
       id: item.id || crypto.randomUUID(),
       type: item.type || 'textNode',

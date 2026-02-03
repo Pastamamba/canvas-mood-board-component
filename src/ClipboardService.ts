@@ -185,7 +185,7 @@ class ClipboardService implements ClipboardHandler {
                 }
               }
             }
-          } catch (error) {
+          } catch {
             // No image in clipboard, trying text fallback
           }
         }
@@ -197,8 +197,8 @@ class ClipboardService implements ClipboardHandler {
         }
       }
       return null;
-    } catch (error) {
-      console.warn('Could not read from clipboard:', error);
+    } catch (err) {
+      console.warn('Could not read from clipboard:', err);
       return null;
     }
   }

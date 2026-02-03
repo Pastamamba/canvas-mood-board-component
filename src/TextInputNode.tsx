@@ -3,7 +3,7 @@ import { Handle, useStore, Position, useReactFlow } from '@xyflow/react';
 
 const dimensionAttrs = ['width', 'height'];
 
-export default memo(({ id }: { id: string }) => {
+const TextInputNode = memo(({ id }: { id: string }) => {
   const { setNodes } = useReactFlow();
   const dimensions = useStore((s) => {
     const node = s.nodeLookup.get('2-3');
@@ -77,3 +77,5 @@ export default memo(({ id }: { id: string }) => {
     </>
   );
 });
+
+export default TextInputNode;

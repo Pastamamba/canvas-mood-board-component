@@ -1,6 +1,6 @@
 import { memo, useState, useCallback } from 'react';
 import { Handle, Position, NodeResizer } from '@xyflow/react';
-import { CollapsibleSection, SmartTruncate, InfoPanel, DataHierarchy } from './InformationComponents';
+import { CollapsibleSection, SmartTruncate, InfoPanel } from './InformationComponents';
 
 interface DocumentNodeProps {
   data: {
@@ -11,7 +11,7 @@ interface DocumentNodeProps {
     documentId?: string;
     content?: string;
     description?: string;
-    metadata?: Record<string, any>;
+    metadata?: Record<string, unknown>;
     lastModified?: string;
     author?: string;
     tags?: string[];
@@ -42,7 +42,7 @@ function DocumentNode({ data, selected }: DocumentNodeProps) {
     } else if (actor && typeof actor === 'object' && actor.name) {
       return { 
         name: actor.name, 
-        initials: actor.avatar || getActorInitials(actor.name),
+        initials: (actor as { name: string; role?: string; avatar?: string }).avatar || getActorInitials(actor.name),
         role: actor.role
       };
     }
