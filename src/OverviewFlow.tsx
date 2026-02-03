@@ -1,4 +1,4 @@
-import { useCallback, useRef, useState, useEffect } from 'react';
+import { useCallback, useRef, useState, useEffect, useMemo } from 'react';
 import {
   ReactFlow,
   addEdge,
@@ -40,34 +40,37 @@ import Sidebar from './Sidebar';
 import { clipboardService } from './ClipboardService';
 import { CanvasSerializer } from './CanvasSerializer';
 
-const nodeTypes = {
-  annotation: AnnotationNode,
-  tools: ToolbarNode,
-  resizer: ResizerNode,
-  circle: CircleNode,
-  textinput: TextInputNode,
-  textNode: TextNode,
-  linkNode: LinkNode,
-  imageNode: ImageNode,
-  noteNode: NoteNode,
-  documentNode: DocumentNode,
-  videoNode: VideoNode,
-  iframeNode: IframeNode,
-  sketchNode: SketchNode,
-  markdownNode: MarkdownNode,
-  groupNode: GroupNode,
-};
-
-const edgeTypes = {
-  button: ButtonEdge,
-};
-
-const nodeClassName = (node: Node) => node.type || 'default';
-
 const OverviewFlow = () => {
   const [nodes, setNodes, onNodesChange] = useNodesState(initialNodes);
   const [edges, setEdges, onEdgesChange] = useEdgesState(initialEdges);
   const reactFlowWrapper = useRef<HTMLDivElement>(null);
+  const [reactFlowInstance, setReactFlowInstance] = useState<any>(null);
+
+  // Memoize nodeTypes and edgeTypes to prevent recreation on every render
+  const nodeTypes = useMemo(() => ({
+    annotation: AnnotationNode,
+    tools: ToolbarNode,
+    resizer: ResizerNode,
+    circle: CircleNode,
+    textinput: TextInputNode,
+    textNode: TextNode,
+    linkNode: LinkNode,
+    imageNode: ImageNode,
+    noteNode: NoteNode,
+    documentNode: DocumentNode,
+    videoNode: VideoNode,
+    iframeNode: IframeNode,
+    sketchNode: SketchNode,
+    markdownNode: MarkdownNode,
+    groupNode: GroupNode,
+  }), []);
+
+  const edgeTypes = useMemo(() => ({
+    button: ButtonEdge,
+  }), []);
+
+  // Memoize nodeClassName function
+  const nodeClassName = useCallback((node: Node) => node.type || 'default', []);
   const [reactFlowInstance, setReactFlowInstance] = useState<any>(null);
 
   const onConnect = useCallback(
@@ -78,7 +81,7 @@ const OverviewFlow = () => {
   const onPaneClick = useCallback(() => {
     // Deselect all nodes when clicking on empty pane
     setNodes((nds) => nds.map((node) => ({ ...node, selected: false })));
-  }, [setNodes]);
+  }, []); // Remove setNodes dependency as it's stable from React Flow
 
   const onDragOver = useCallback((event: React.DragEvent) => {
     event.preventDefault();

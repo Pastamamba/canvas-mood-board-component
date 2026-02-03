@@ -9,11 +9,16 @@ export interface OpenGraphData {
 
 export class MetadataService {
   private static cache = new Map<string, OpenGraphData>();
+  private static readonly maxCacheSize = 100; // Limit cache to prevent memory issues
   
   static async fetchMetadata(url: string): Promise<OpenGraphData | null> {
-    // Check cache first
+    // Check cache first (implements LRU behavior)
     if (this.cache.has(url)) {
-      return this.cache.get(url) || null;
+      const data = this.cache.get(url) || null;
+      // Move to end for LRU
+      this.cache.delete(url);
+      if (data) this.cache.set(url, data);
+      return data;
     }
 
     try {
@@ -31,6 +36,12 @@ export class MetadataService {
       const html = data.contents;
       const metadata = this.parseMetadata(html);
       
+      // Manage cache size (LRU eviction)
+      if (this.cache.size >= this.maxCacheSize) {
+        const firstKey = this.cache.keys().next().value;
+        this.cache.delete(firstKey);
+      }
+      
       // Cache the result
       this.cache.set(url, metadata);
       
@@ -44,6 +55,12 @@ export class MetadataService {
         description: url,
         url,
       };
+      
+      // Manage cache size before adding
+      if (this.cache.size >= this.maxCacheSize) {
+        const firstKey = this.cache.keys().next().value;
+        this.cache.delete(firstKey);
+      }
       
       this.cache.set(url, basicMetadata);
       return basicMetadata;

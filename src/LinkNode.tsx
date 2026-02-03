@@ -18,23 +18,28 @@ function LinkNode({ data, selected }: LinkNodeProps) {
   const [metadata, setMetadata] = useState<OpenGraphData | null>(null);
   const [isLoadingMetadata, setIsLoadingMetadata] = useState(false);
 
-  // Fetch metadata when URL changes
+  // Fetch metadata when URL changes with debouncing
   useEffect(() => {
     if (url && url.startsWith('http') && !isEditingUrl) {
-      setIsLoadingMetadata(true);
-      MetadataService.fetchMetadata(url)
-        .then(meta => {
-          if (meta) {
-            setMetadata(meta);
-            // Update title if it hasn't been manually set
-            if (title === 'Click to edit title' || title === data.title) {
-              setTitle(meta.title || title);
+      // Debounce metadata fetching to prevent excessive API calls
+      const timeoutId = setTimeout(() => {
+        setIsLoadingMetadata(true);
+        MetadataService.fetchMetadata(url)
+          .then(meta => {
+            if (meta) {
+              setMetadata(meta);
+              // Update title if it hasn't been manually set
+              if (title === 'Click to edit title' || title === data.title) {
+                setTitle(meta.title || title);
+              }
             }
-          }
-        })
-        .finally(() => setIsLoadingMetadata(false));
+          })
+          .finally(() => setIsLoadingMetadata(false));
+      }, 500); // 500ms debounce
+
+      return () => clearTimeout(timeoutId);
     }
-  }, [url, isEditingUrl]);
+  }, [url, isEditingUrl, title, data.title]);
 
   const handleLinkClick = () => {
     if (url && !isEditingTitle && !isEditingUrl) {

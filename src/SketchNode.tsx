@@ -52,19 +52,34 @@ const SketchNode: React.FC<SketchNodeProps> = ({ data, selected }) => {
   useEffect(() => {
     // Initialize canvas after component mounts with a longer delay for proper sizing
     const timer = setTimeout(initializeCanvas, 200);
+    let resizeTimeout: number;
     
     // Add resize observer to handle node resizing
     const node = nodeRef.current;
     if (node && window.ResizeObserver) {
       const resizeObserver = new ResizeObserver(() => {
-        // Debounce the resize to avoid too many redraws
-        setTimeout(initializeCanvas, 100);
+        // Improved debouncing - clear previous timeout and set new one
+        clearTimeout(resizeTimeout);
+        resizeTimeout = setTimeout(() => {
+          // Only reinitialize if size actually changed significantly
+          const canvas = canvasRef.current;
+          if (canvas) {
+            const rect = node.getBoundingClientRect();
+            const newWidth = Math.floor(rect.width - 32); // Account for padding
+            const newHeight = Math.floor(rect.height - 80); // Account for header
+            
+            if (Math.abs(canvas.width - newWidth) > 5 || Math.abs(canvas.height - newHeight) > 5) {
+              initializeCanvas();
+            }
+          }
+        }, 150); // Increased debounce time
       });
       resizeObserver.observe(node);
       
       return () => {
         resizeObserver.disconnect();
         clearTimeout(timer);
+        clearTimeout(resizeTimeout);
       };
     }
     
