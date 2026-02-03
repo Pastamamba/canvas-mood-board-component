@@ -222,7 +222,7 @@ const OverviewFlow = () => {
   };
 
   // Node drag and drop grouping functionality
-  const onNodeDragStop = useCallback((event: any, node: Node) => {
+  const onNodeDragStop = useCallback((_event: any, node: Node) => {
     // Check if node was dropped on a group node
     const groupNodes = nodes.filter(n => n.type === 'groupNode' && n.id !== node.id);
     

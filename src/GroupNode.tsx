@@ -10,7 +10,7 @@ interface GroupNodeProps {
   selected?: boolean;
 }
 
-function GroupNode({ id, data, selected }: GroupNodeProps) {
+function GroupNode({ data, selected }: GroupNodeProps) {
   const [label, setLabel] = useState(data.label || 'Group');
   const [isEditing, setIsEditing] = useState(false);
 
