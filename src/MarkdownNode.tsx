@@ -16,19 +16,56 @@ function MarkdownNode({ data, selected }: MarkdownNodeProps) {
   const [isEditingTitle, setIsEditingTitle] = useState(false);
   const [previewMode, setPreviewMode] = useState(false);
 
-  // Simple markdown to HTML converter (basic)
-  const markdownToHtml = (md: string) => {
-    return md
-      .replace(/^# (.*$)/gm, '<h1>$1</h1>')
-      .replace(/^## (.*$)/gm, '<h2>$1</h2>')
-      .replace(/^### (.*$)/gm, '<h3>$1</h3>')
-      .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
-      .replace(/\*(.*?)\*/g, '<em>$1</em>')
-      .replace(/`(.*?)`/g, '<code>$1</code>')
-      .replace(/^- (.*$)/gm, '<ul><li>$1</li></ul>')
-      .replace(/<\/ul>\s*<ul>/g, '')
-      .replace(/\n\n/g, '<br><br>')
-      .replace(/\n/g, '<br>');
+  // Safe markdown to React elements converter
+  const renderMarkdown = (md: string) => {
+    const lines = md.split('\n');
+    const elements: JSX.Element[] = [];
+    let currentList: string[] = [];
+    
+    const flushList = () => {
+      if (currentList.length > 0) {
+        elements.push(
+          <ul key={`list-${elements.length}`}>
+            {currentList.map((item, idx) => (
+              <li key={idx} dangerouslySetInnerHTML={{ __html: item }} />
+            ))}
+          </ul>
+        );
+        currentList = [];
+      }
+    };
+    
+    lines.forEach((line, idx) => {
+      if (line.startsWith('# ')) {
+        flushList();
+        elements.push(<h1 key={`h1-${idx}`}>{line.substring(2)}</h1>);
+      } else if (line.startsWith('## ')) {
+        flushList();
+        elements.push(<h2 key={`h2-${idx}`}>{line.substring(3)}</h2>);
+      } else if (line.startsWith('### ')) {
+        flushList();
+        elements.push(<h3 key={`h3-${idx}`}>{line.substring(4)}</h3>);
+      } else if (line.startsWith('- ')) {
+        const content = line.substring(2)
+          .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+          .replace(/\*(.*?)\*/g, '<em>$1</em>')
+          .replace(/`(.*?)`/g, '<code>$1</code>');
+        currentList.push(content);
+      } else if (line.trim() === '') {
+        flushList();
+        if (elements.length > 0) elements.push(<br key={`br-${idx}`} />);
+      } else {
+        flushList();
+        const content = line
+          .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+          .replace(/\*(.*?)\*/g, '<em>$1</em>')
+          .replace(/`(.*?)`/g, '<code>$1</code>');
+        elements.push(<p key={`p-${idx}`} dangerouslySetInnerHTML={{ __html: content }} />);
+      }
+    });
+    
+    flushList();
+    return elements;
   };
 
   return (
@@ -79,8 +116,9 @@ function MarkdownNode({ data, selected }: MarkdownNodeProps) {
           <div 
             onClick={() => setIsEditing(true)}
             className="markdown-preview"
-            dangerouslySetInnerHTML={{ __html: markdownToHtml(content) }}
-          />
+          >
+            {renderMarkdown(content)}
+          </div>
         )}
       </div>
       
