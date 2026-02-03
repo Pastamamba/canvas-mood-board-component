@@ -3,7 +3,11 @@ import { Handle, Position, NodeToolbar } from '@xyflow/react';
 
 const emojis = ['🚀', '🔥', '✨'];
 
-function ToolbarNode({ data }: { data: any }) {
+interface ToolbarNodeData {
+  label?: string;
+}
+
+function ToolbarNode({ data }: { data: ToolbarNodeData }) {
   const [emoji, setEmoji] = useState('🚀');
 
   return (

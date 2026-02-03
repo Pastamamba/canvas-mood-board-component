@@ -24,7 +24,7 @@ function DocumentNode({ data, selected }: DocumentNodeProps) {
     return name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
   };
 
-  const getActorDisplay = (actor: any) => {
+  const getActorDisplay = (actor: string | { name: string; role?: string }) => {
     if (typeof actor === 'string') {
       return { name: actor, initials: getActorInitials(actor) };
     } else if (actor && typeof actor === 'object' && actor.name) {

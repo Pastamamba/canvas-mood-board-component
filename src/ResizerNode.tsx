@@ -1,7 +1,11 @@
 import { memo } from 'react';
 import { Handle, Position, NodeResizer } from '@xyflow/react';
 
-function ResizerNode({ data, selected }: { data: any; selected?: boolean }) {
+interface ResizerNodeData {
+  label?: string;
+}
+
+function ResizerNode({ data, selected }: { data: ResizerNodeData; selected?: boolean }) {
   return (
     <>
       {selected && <NodeResizer minWidth={1} minHeight={1} />}

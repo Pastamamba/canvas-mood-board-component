@@ -8,6 +8,8 @@ import {
   useNodesState,
   useEdgesState,
   type Node,
+  type Edge,
+  type Connection,
 } from '@xyflow/react';
 
 import '@xyflow/react/dist/style.css';
@@ -60,7 +62,7 @@ const edgeTypes = {
   button: ButtonEdge,
 };
 
-const nodeClassName = (node: any) => node.type;
+const nodeClassName = (node: Node) => node.type || 'default';
 
 const OverviewFlow = () => {
   const [nodes, setNodes, onNodesChange] = useNodesState(initialNodes);
@@ -69,7 +71,7 @@ const OverviewFlow = () => {
   const [reactFlowInstance, setReactFlowInstance] = useState<any>(null);
 
   const onConnect = useCallback(
-    (params: any) => setEdges((eds) => addEdge(params, eds)),
+    (params: Connection | Edge) => setEdges((eds) => addEdge(params, eds)),
     [],
   );
 

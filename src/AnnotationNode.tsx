@@ -1,6 +1,12 @@
 import { memo } from 'react';
 
-function AnnotationNode({ data }: { data: any }) {
+interface AnnotationNodeData {
+  level?: number;
+  label?: string;
+  arrowStyle?: string;
+}
+
+function AnnotationNode({ data }: { data: AnnotationNodeData }) {
   return (
     <>
       <div className='annotation-content'>

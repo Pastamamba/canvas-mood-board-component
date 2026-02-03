@@ -16,7 +16,7 @@ export interface CanvasState {
 }
 
 export class CanvasSerializer {
-  static serialize(nodes: Node[], edges: Edge[], viewport?: any): string {
+  static serialize(nodes: Node[], edges: Edge[], viewport?: { x: number; y: number; zoom: number }): string {
     const state: CanvasState = {
       nodes: nodes.map(node => ({
         ...node,
@@ -55,7 +55,7 @@ export class CanvasSerializer {
     }
   }
   
-  static exportToFile(nodes: Node[], edges: Edge[], viewport?: any, filename: string = 'canvas-export.json') {
+  static exportToFile(nodes: Node[], edges: Edge[], viewport?: { x: number; y: number; zoom: number }, filename: string = 'canvas-export.json') {
     const jsonString = this.serialize(nodes, edges, viewport);
     const blob = new Blob([jsonString], { type: 'application/json' });
     const url = URL.createObjectURL(blob);
@@ -111,9 +111,9 @@ export class CanvasSerializer {
   }
 
   // Create nodes from external data
-  static createNodesFromData(nodeData: any[]): Node[] {
+  static createNodesFromData(nodeData: (Partial<Node> & { metadata?: { width?: number; height?: number; style?: any } })[]): Node[] {
     return nodeData.map(item => ({
-      id: item.id,
+      id: item.id || crypto.randomUUID(),
       type: item.type || 'textNode',
       position: item.position || { x: 0, y: 0 },
       data: item.data || {},

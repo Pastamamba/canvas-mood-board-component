@@ -4,18 +4,20 @@ import {
   EdgeLabelRenderer,
   getBezierPath,
   useReactFlow,
+  EdgeProps,
+  Position,
 } from '@xyflow/react';
 
-interface ButtonEdgeProps {
+interface ButtonEdgeProps extends Omit<EdgeProps, 'data'> {
   id: string;
   sourceX: number;
   sourceY: number;
   targetX: number;
   targetY: number;
-  sourcePosition: any;
-  targetPosition: any;
+  sourcePosition: Position;
+  targetPosition: Position;
   style?: React.CSSProperties;
-  markerEnd?: any;
+  markerEnd?: string;
 }
 
 export default function ButtonEdge({
