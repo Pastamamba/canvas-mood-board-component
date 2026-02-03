@@ -26,6 +26,17 @@ function ImageNode({ id, data, selected }: ImageNodeProps) {
     setImageError(false);
     const img = e.target as HTMLImageElement;
     
+    // Announce successful image load to screen readers
+    const announcement = `Image loaded successfully: ${caption || 'Image'} with dimensions ${img.naturalWidth} by ${img.naturalHeight}`;
+    const ariaLive = document.createElement('div');
+    ariaLive.setAttribute('aria-live', 'polite');
+    ariaLive.setAttribute('aria-atomic', 'true');
+    ariaLive.style.position = 'absolute';
+    ariaLive.style.left = '-10000px';
+    ariaLive.textContent = announcement;
+    document.body.appendChild(ariaLive);
+    setTimeout(() => document.body.removeChild(ariaLive), 1000);
+    
     // Calculate appropriate node size based on image dimensions
     const maxWidth = 400;
     const maxHeight = 300;
@@ -63,7 +74,12 @@ function ImageNode({ id, data, selected }: ImageNodeProps) {
   }, [id, setNodes]);
 
   return (
-    <div className="image-node-container" style={{ width: '100%', height: '100%' }}>
+    <div 
+      className={`image-node-container node-container ${imageError ? 'error' : ''}`} 
+      style={{ width: '100%', height: '100%' }}
+      role="img"
+      aria-label={`Image node: ${caption || 'No caption'}`}
+    >
       {selected && <NodeResizer minWidth={200} minHeight={150} />}
       <Handle type="target" position={Position.Top} className="custom-handle" />
       
