@@ -129,6 +129,19 @@ const Sidebar = () => {
             </div>
           </div>
 
+          {/* Group Node */}
+          <div
+            className="node-item group-node-item"
+            onDragStart={(event) => onDragStart(event, 'groupNode')}
+            draggable
+          >
+            <div className="node-icon group-icon">📦</div>
+            <div className="node-info">
+              <div className="node-name">Group</div>
+              <div className="node-description">Container for grouping nodes</div>
+            </div>
+          </div>
+
         </div>
       </div>
       

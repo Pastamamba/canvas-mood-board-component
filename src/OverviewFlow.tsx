@@ -32,6 +32,7 @@ import VideoNode from './VideoNode';
 import IframeNode from './IframeNode';
 import SketchNode from './SketchNode';
 import MarkdownNode from './MarkdownNode';
+import GroupNode from './GroupNode';
 import Sidebar from './Sidebar';
 import { clipboardService } from './ClipboardService';
 import { CanvasSerializer } from './CanvasSerializer';
@@ -51,6 +52,7 @@ const nodeTypes = {
   iframeNode: IframeNode,
   sketchNode: SketchNode,
   markdownNode: MarkdownNode,
+  groupNode: GroupNode,
 };
 
 const edgeTypes = {
@@ -111,6 +113,7 @@ const OverviewFlow = () => {
                  type === 'documentNode' ? { width: 350, height: 400 } :
                  type === 'iframeNode' ? { width: 400, height: 300 } :
                  type === 'markdownNode' ? { width: 350, height: 250 } :
+                 type === 'groupNode' ? { width: 400, height: 300 } :
                  undefined
         };
 
@@ -211,10 +214,54 @@ const OverviewFlow = () => {
         return { title: 'New Sketch', drawing: '' };
       case 'markdownNode':
         return { content: '# New Note\\n\\nClick to edit...', title: 'Markdown Note' };
+      case 'groupNode':
+        return { label: 'Group', backgroundColor: 'rgba(99, 102, 241, 0.1)' };
       default:
         return {};
     }
   };
+
+  // Node drag and drop grouping functionality
+  const onNodeDragStop = useCallback((event: any, node: Node) => {
+    // Check if node was dropped on a group node
+    const groupNodes = nodes.filter(n => n.type === 'groupNode' && n.id !== node.id);
+    
+    for (const groupNode of groupNodes) {
+      const groupBounds = {
+        x: groupNode.position.x,
+        y: groupNode.position.y,
+        width: (groupNode.style?.width as number) || 300,
+        height: (groupNode.style?.height as number) || 200
+      };
+      
+      // Check if node is inside group bounds
+      if (
+        node.position.x >= groupBounds.x &&
+        node.position.x <= groupBounds.x + groupBounds.width &&
+        node.position.y >= groupBounds.y &&
+        node.position.y <= groupBounds.y + groupBounds.height
+      ) {
+        // Set the node as child of the group
+        setNodes((nds) =>
+          nds.map((n) =>
+            n.id === node.id
+              ? {
+                  ...n,
+                  parentId: groupNode.id,
+                  expandParent: true,
+                  extent: 'parent',
+                  position: {
+                    x: node.position.x - groupBounds.x,
+                    y: node.position.y - groupBounds.y,
+                  },
+                }
+              : n
+          )
+        );
+        break;
+      }
+    }
+  }, [nodes, setNodes]);
 
   return (
     <div className="flow-container">
@@ -230,6 +277,7 @@ const OverviewFlow = () => {
           onDrop={onDrop}
           onDragOver={onDragOver}
           onPaneClick={onPaneClick}
+          onNodeDragStop={onNodeDragStop}
           fitView
           attributionPosition="top-right"
           nodeTypes={nodeTypes}
