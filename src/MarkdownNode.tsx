@@ -138,12 +138,6 @@ function MarkdownNode({ data, selected }: MarkdownNodeProps) {
         currentList = [];
       }
     };
-            ))}
-          </ul>
-        );
-        currentList = [];
-      }
-    };
     
     lines.forEach((line, idx) => {
       if (line.startsWith('# ')) {
@@ -158,86 +152,200 @@ function MarkdownNode({ data, selected }: MarkdownNodeProps) {
       } else if (line.startsWith('- ')) {
         const content = line.substring(2)
           .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
-          .replace(/\*(.*?)\*/g, '<em>$1</em>')
-          .replace(/`(.*?)`/g, '<code>$1</code>');
+          .replace(/\*(.*?)\*/g, '<em>$1</em>');
         currentList.push(content);
       } else if (line.trim() === '') {
         flushList();
-        if (elements.length > 0) elements.push(<br key={`br-${idx}`} />);
+        if (elements.length > 0 && elements[elements.length - 1].type !== 'br') {
+          elements.push(<br key={`br-${idx}`} />);
+        }
       } else {
         flushList();
         const content = line
           .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
           .replace(/\*(.*?)\*/g, '<em>$1</em>')
-          .replace(/`(.*?)`/g, '<code>$1</code>');
+          .replace(/`([^`]+)`/g, '<code>$1</code>');
         elements.push(<p key={`p-${idx}`} dangerouslySetInnerHTML={{ __html: content }} />);
       }
     });
     
     flushList();
     return elements;
-  };
-
+  }, []);
   return (
-    <div className="markdown-node-container" style={{ width: '100%', height: '100%' }}>
+    <div className="markdown-node-container node-container">
       {selected && <NodeResizer minWidth={300} minHeight={200} />}
       <Handle type="target" position={Position.Top} className="custom-handle" />
       
+      {/* Header with controls */}
       <div className="markdown-header">
         {isEditingTitle ? (
           <input
             value={title}
             onChange={(e) => setTitle(e.target.value)}
             onBlur={() => setIsEditingTitle(false)}
-            onKeyPress={(e) => e.key === 'Enter' && setIsEditingTitle(false)}
-            className="markdown-title-input"
+            onKeyDown={(e) => {
+              if (e.key === 'Enter') setIsEditingTitle(false);
+              if (e.key === 'Escape') setIsEditingTitle(false);
+            }}
+            className="title-input"
             autoFocus
           />
         ) : (
-          <h4 
-            onClick={() => setIsEditingTitle(true)}
-            className="markdown-title"
-          >
+          <h3 onClick={() => setIsEditingTitle(true)} className="markdown-title">
             {title}
-          </h4>
+          </h3>
         )}
         
         <div className="markdown-controls">
-          <button 
-            onClick={() => setPreviewMode(!previewMode)}
-            className={`mode-btn ${previewMode ? 'active' : ''}`}
+          <button
+            onClick={(e) => { e.stopPropagation(); setShowStats(!showStats); }}
+            className={`control-btn ${showStats ? 'active' : ''}`}
+            title="Document statistics"
+            aria-label="Show document statistics"
           >
-            {previewMode ? '📝 Edit' : '👁️ Preview'}
+            📊
+          </button>
+          <button
+            onClick={(e) => { e.stopPropagation(); setShowOutline(!showOutline); }}
+            className={`control-btn ${showOutline ? 'active' : ''}`}
+            title="Document outline"
+            aria-label="Toggle document outline"
+          >
+            🗂️
+          </button>
+          <button
+            onClick={(e) => { e.stopPropagation(); setPreviewMode(!previewMode); }}
+            className={`control-btn ${previewMode ? 'active' : ''}`}
+            title={previewMode ? "Edit mode" : "Preview mode"}
+            aria-label={previewMode ? "Switch to edit mode" : "Switch to preview mode"}
+          >
+            {previewMode ? '✏️' : '👁️'}
           </button>
         </div>
       </div>
-      
+
+      {/* Document outline */}
+      {showOutline && headingsStructure.length > 0 && (
+        <CollapsibleSection
+          title="Document Outline"
+          icon="📑"
+          defaultExpanded={true}
+          count={headingsStructure.length}
+        >
+          <div className="document-toc">
+            {renderTOCTree(headingsStructure)}
+          </div>
+        </CollapsibleSection>
+      )}
+
+      {/* Document statistics */}
+      {showStats && (
+        <CollapsibleSection
+          title="Document Statistics"
+          icon="📈"
+          defaultExpanded={false}
+        >
+          <div className="document-stats">
+            <div className="stats-grid">
+              <div className="stat-item">
+                <span className="stat-value">{documentStats.words}</span>
+                <span className="stat-label">Words</span>
+              </div>
+              <div className="stat-item">
+                <span className="stat-value">{documentStats.characters}</span>
+                <span className="stat-label">Characters</span>
+              </div>
+              <div className="stat-item">
+                <span className="stat-value">{documentStats.paragraphs}</span>
+                <span className="stat-label">Paragraphs</span>
+              </div>
+              <div className="stat-item">
+                <span className="stat-value">{documentStats.headings}</span>
+                <span className="stat-label">Headings</span>
+              </div>
+              <div className="stat-item">
+                <span className="stat-value">{readingTime}</span>
+                <span className="stat-label">Min read</span>
+              </div>
+              <div className="stat-item">
+                <span className="stat-value">{documentStats.links}</span>
+                <span className="stat-label">Links</span>
+              </div>
+            </div>
+            {(documentStats.codeBlocks > 0 || documentStats.inlineCode > 0) && (
+              <div className="code-stats">
+                <span>Code: {documentStats.codeBlocks} blocks, {documentStats.inlineCode} inline</span>
+              </div>
+            )}
+          </div>
+        </CollapsibleSection>
+      )}
+
+      {/* Main content */}
       <div className="markdown-content">
-        {isEditing || !previewMode ? (
-          <textarea
-            value={content}
-            onChange={(e) => setContent(e.target.value)}
-            onBlur={() => setIsEditing(false)}
-            className="markdown-textarea"
-            placeholder="Enter markdown content...\n\n# Heading\n**bold** *italic*\n- List item\n`code`"
-            autoFocus={isEditing}
-          />
+        {isEditing ? (
+          <div className="markdown-editor">
+            <textarea
+              value={content}
+              onChange={(e) => setContent(e.target.value)}
+              onBlur={() => setIsEditing(false)}
+              onKeyDown={(e) => {
+                if (e.key === 'Escape') {
+                  setIsEditing(false);
+                }
+                // Tab handling for indentation
+                if (e.key === 'Tab') {
+                  e.preventDefault();
+                  const start = e.currentTarget.selectionStart;
+                  const end = e.currentTarget.selectionEnd;
+                  const newContent = content.substring(0, start) + '  ' + content.substring(end);
+                  setContent(newContent);
+                  setTimeout(() => {
+                    e.currentTarget.selectionStart = e.currentTarget.selectionEnd = start + 2;
+                  }, 0);
+                }
+              }}
+              className="markdown-textarea"
+              autoFocus
+              placeholder="# Enter your markdown here..."
+              spellCheck={true}
+            />
+            <div className="editor-footer">
+              <span className="editor-stats">
+                {documentStats.words}w • {documentStats.lines}l • {documentStats.characters}c
+              </span>
+              <span className="editor-hint">
+                ESC to preview • Tab for indent
+              </span>
+            </div>
+          </div>
+        ) : previewMode ? (
+          <div 
+            className="markdown-preview"
+            onClick={() => setIsEditing(true)}
+          >
+            <div className="rendered-markdown">
+              {renderMarkdown(content)}
+            </div>
+          </div>
         ) : (
           <div 
             onClick={() => setIsEditing(true)}
-            className="markdown-preview"
+            className="markdown-display"
+            role="button"
+            tabIndex={0}
+            onKeyDown={(e) => e.key === 'Enter' && setIsEditing(true)}
+            aria-label="Click to edit markdown"
           >
-            {renderMarkdown(content)}
+            <SmartTruncate
+              text={content}
+              maxLength={300}
+              previewLines={6}
+              className="markdown-text"
+            />
           </div>
         )}
-      </div>
-      
-      <div className="markdown-toolbar">
-        <button onClick={() => setContent(content + '\n**Bold Text**')} className="format-btn">B</button>
-        <button onClick={() => setContent(content + '\n*Italic Text*')} className="format-btn">I</button>
-        <button onClick={() => setContent(content + '\n# Heading')} className="format-btn">H</button>
-        <button onClick={() => setContent(content + '\n- List item')} className="format-btn">•</button>
-        <button onClick={() => setContent(content + '\n`code`')} className="format-btn">{`<>`}</button>
       </div>
       
       <Handle type="source" position={Position.Bottom} className="custom-handle" />
