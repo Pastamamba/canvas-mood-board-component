@@ -271,43 +271,44 @@ const OverviewFlow = () => {
       <div className="flow-container">
         <Sidebar />
         <div className="canvas-container" ref={reactFlowWrapper}>
-        <ReactFlow
-          nodes={nodes}
-          edges={edges}
-          onNodesChange={onNodesChange}
-          onEdgesChange={onEdgesChange}
-          onConnect={onConnect}
-          onInit={setReactFlowInstance}
-          onDrop={onDrop}
-          onDragOver={onDragOver}
-          onPaneClick={onPaneClick}
-          onNodeDragStop={onNodeDragStop}
-          fitView
-          attributionPosition="top-right"
-          nodeTypes={nodeTypes}
-          edgeTypes={edgeTypes}
-        >
-          <MiniMap zoomable pannable nodeClassName={nodeClassName} />
-          <Controls />
-          <Background />
-        </ReactFlow>
-        
-        {/* Export/Import Actions */}
-        <div className="canvas-actions">
-          <button 
-            className="canvas-action-button"
-            onClick={exportCanvas}
-            title="Export Canvas (Ctrl+S)"
+          <ReactFlow
+            nodes={nodes}
+            edges={edges}
+            onNodesChange={onNodesChange}
+            onEdgesChange={onEdgesChange}
+            onConnect={onConnect}
+            onInit={setReactFlowInstance}
+            onDrop={onDrop}
+            onDragOver={onDragOver}
+            onPaneClick={onPaneClick}
+            onNodeDragStop={onNodeDragStop}
+            fitView
+            attributionPosition="top-right"
+            nodeTypes={nodeTypes}
+            edgeTypes={edgeTypes}
           >
-            💾 Export
-          </button>
-          <button 
-            className="canvas-action-button"
-            onClick={importCanvas}
-            title="Import Canvas (Ctrl+O)"
-          >
-            📁 Import
-          </button>
+            <MiniMap zoomable pannable nodeClassName={nodeClassName} />
+            <Controls />
+            <Background />
+          </ReactFlow>
+          
+          {/* Export/Import Actions */}
+          <div className="canvas-actions">
+            <button 
+              className="canvas-action-button"
+              onClick={exportCanvas}
+              title="Export Canvas (Ctrl+S)"
+            >
+              💾 Export
+            </button>
+            <button 
+              className="canvas-action-button"
+              onClick={importCanvas}
+              title="Import Canvas (Ctrl+O)"
+            >
+              📁 Import
+            </button>
+          </div>
         </div>
       </div>
     </ErrorBoundary>
