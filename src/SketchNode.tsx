@@ -1,5 +1,16 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { Handle, Position, NodeResizer } from '@xyflow/react';
+import { 
+  AdvancedDrawingToolbar, 
+  DrawingState, 
+  DrawingHistoryManager,
+  createHistoryManager,
+  saveDrawingState,
+  undoDrawing,
+  redoDrawing,
+  drawShape,
+  type DrawingTool
+} from './AdvancedDrawingTools';
 
 interface SketchNodeData {
   title: string;
@@ -13,22 +24,36 @@ interface SketchNodeProps {
 
 const SketchNode: React.FC<SketchNodeProps> = ({ data, selected }) => {
   const [title, setTitle] = useState(data.title);
-  const [currentTool, setCurrentTool] = useState<'pen' | 'eraser'>('pen');
   const [isDrawing, setIsDrawing] = useState(false);
+  const [isShapeMode, setIsShapeMode] = useState(false);
+  const [startPoint, setStartPoint] = useState({ x: 0, y: 0 });
+  const [tempCanvas, setTempCanvas] = useState<HTMLCanvasElement | null>(null);
+  
+  const [drawingState, setDrawingState] = useState<DrawingState>({
+    tool: 'pen',
+    color: '#000000',
+    size: 2,
+    opacity: 1,
+    fill: false,
+    fontSize: 16
+  });
+
+  const [history, setHistory] = useState<DrawingHistoryManager>(() => 
+    createHistoryManager(50)
+  );
+
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const ctxRef = useRef<CanvasRenderingContext2D | null>(null);
   const nodeRef = useRef<HTMLDivElement>(null);
 
-  const initializeCanvas = () => {
+  const initializeCanvas = useCallback(() => {
     const canvas = canvasRef.current;
     const node = nodeRef.current;
     if (canvas && node) {
-      // Get node dimensions and calculate canvas size
       const nodeRect = node.getBoundingClientRect();
-      const canvasWidth = Math.max(400, nodeRect.width - 24); // Account for padding
-      const canvasHeight = Math.max(300, nodeRect.height - 80); // Account for header and padding
+      const canvasWidth = Math.max(400, nodeRect.width - 24);
+      const canvasHeight = Math.max(300, nodeRect.height - 120); // More space for toolbar
       
-      // Set canvas size (both display and internal dimensions)
       canvas.style.width = canvasWidth + 'px';
       canvas.style.height = canvasHeight + 'px';
       canvas.width = canvasWidth;
@@ -38,16 +63,86 @@ const SketchNode: React.FC<SketchNodeProps> = ({ data, selected }) => {
       if (ctx) {
         ctx.lineCap = 'round';
         ctx.lineJoin = 'round';
-        ctx.lineWidth = 2;
-        ctx.strokeStyle = '#000000';
-        ctxRef.current = ctx;
-        
-        // Clear canvas with white background
         ctx.fillStyle = 'white';
         ctx.fillRect(0, 0, canvas.width, canvas.height);
+        ctxRef.current = ctx;
+        
+        // Save initial state to history
+        setHistory(prev => saveDrawingState(canvas, prev));
       }
+
+      // Create temporary canvas for shape preview
+      const temp = document.createElement('canvas');
+      temp.width = canvas.width;
+      temp.height = canvas.height;
+      setTempCanvas(temp);
     }
-  };
+  }, []);
+
+  const handleDrawingStateChange = useCallback((newState: Partial<DrawingState>) => {
+    setDrawingState(prev => ({ ...prev, ...newState }));
+    setIsShapeMode(['line', 'rectangle', 'circle', 'text'].includes(newState.tool as string));
+  }, []);
+
+  const handleUndo = useCallback(() => {
+    const canvas = canvasRef.current;
+    if (canvas) {
+      setHistory(prev => undoDrawing(canvas, prev));
+    }
+  }, []);
+
+  const handleRedo = useCallback(() => {
+    const canvas = canvasRef.current;
+    if (canvas) {
+      setHistory(prev => redoDrawing(canvas, prev));
+    }
+  }, []);
+
+  const handleClear = useCallback(() => {
+    const canvas = canvasRef.current;
+    const ctx = ctxRef.current;
+    if (!canvas || !ctx) return;
+    
+    ctx.fillStyle = 'white';
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    setHistory(prev => saveDrawingState(canvas, prev));
+  }, []);
+
+  const handleSave = useCallback(() => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    
+    const imageData = canvas.toDataURL('image/png');
+    const attachment = {
+      id: `sketch-${Date.now()}`,
+      name: `${title || 'Sketch'}.png`,
+      type: 'image/png',
+      data: imageData,
+      thumbnail: imageData,
+      createdAt: new Date().toISOString(),
+    };
+    
+    const event = new CustomEvent('sketchSaved', {
+      detail: { nodeId: `sketch-${Date.now()}`, title, attachment }
+    });
+    window.dispatchEvent(event);
+  }, [title]);
+
+  const handleExport = useCallback((format: 'png' | 'svg') => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    
+    const link = document.createElement('a');
+    if (format === 'png') {
+      link.download = `${title || 'sketch'}.png`;
+      link.href = canvas.toDataURL('image/png');
+    } else {
+      // Simple SVG export (would need more complex implementation for full SVG support)
+      link.download = `${title || 'sketch'}.png`;
+      link.href = canvas.toDataURL('image/png');
+    }
+    link.click();
+  }, [title]);
 
   useEffect(() => {
     // Initialize canvas after component mounts with a longer delay for proper sizing
@@ -86,12 +181,11 @@ const SketchNode: React.FC<SketchNodeProps> = ({ data, selected }) => {
     return () => clearTimeout(timer);
   }, []);
 
-  const startDrawing = (e: React.MouseEvent<HTMLCanvasElement>) => {
+  const startDrawing = useCallback((e: React.MouseEvent<HTMLCanvasElement>) => {
     const canvas = canvasRef.current;
     const ctx = ctxRef.current;
     if (!canvas || !ctx) return;
     
-    // Prevent all event propagation to stop React Flow dragging
     e.preventDefault();
     e.stopPropagation();
     e.nativeEvent.stopImmediatePropagation();
@@ -102,21 +196,29 @@ const SketchNode: React.FC<SketchNodeProps> = ({ data, selected }) => {
     const x = (e.clientX - rect.left) * scaleX;
     const y = (e.clientY - rect.top) * scaleY;
     
+    setStartPoint({ x, y });
     setIsDrawing(true);
-    ctx.beginPath();
-    ctx.moveTo(x, y);
     
-    if (currentTool === 'pen') {
-      ctx.globalCompositeOperation = 'source-over';
-      ctx.strokeStyle = '#000000';
-      ctx.lineWidth = 2;
-    } else {
+    // Configure drawing context
+    ctx.globalAlpha = drawingState.opacity;
+    ctx.strokeStyle = drawingState.color;
+    ctx.fillStyle = drawingState.color;
+    ctx.lineWidth = drawingState.size;
+    
+    if (drawingState.tool === 'eraser') {
       ctx.globalCompositeOperation = 'destination-out';
-      ctx.lineWidth = 10;
+      ctx.lineWidth = drawingState.size * 2; // Eraser is bigger
+    } else {
+      ctx.globalCompositeOperation = 'source-over';
     }
-  };
+    
+    if (drawingState.tool === 'pen' || drawingState.tool === 'brush') {
+      ctx.beginPath();
+      ctx.moveTo(x, y);
+    }
+  }, [drawingState]);
 
-  const draw = (e: React.MouseEvent<HTMLCanvasElement>) => {
+  const draw = useCallback((e: React.MouseEvent<HTMLCanvasElement>) => {
     if (!isDrawing) return;
     
     const canvas = canvasRef.current;
@@ -133,73 +235,50 @@ const SketchNode: React.FC<SketchNodeProps> = ({ data, selected }) => {
     const x = (e.clientX - rect.left) * scaleX;
     const y = (e.clientY - rect.top) * scaleY;
     
-    ctx.lineTo(x, y);
-    ctx.stroke();
-  };
+    if (drawingState.tool === 'pen' || drawingState.tool === 'brush' || drawingState.tool === 'eraser') {
+      // Free drawing
+      ctx.lineTo(x, y);
+      ctx.stroke();
+    } else if (isShapeMode && tempCanvas) {
+      // Shape preview - draw on temporary canvas
+      const tempCtx = tempCanvas.getContext('2d');
+      if (tempCtx) {
+        // Clear temp canvas
+        tempCtx.clearRect(0, 0, tempCanvas.width, tempCanvas.height);
+        
+        // Copy main canvas to temp
+        tempCtx.drawImage(canvas, 0, 0);
+        
+        // Draw shape preview
+        drawShape(tempCtx, drawingState.tool, startPoint.x, startPoint.y, x, y, drawingState);
+        
+        // Clear main canvas and draw temp canvas
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        ctx.drawImage(tempCanvas, 0, 0);
+      }
+    }
+  }, [isDrawing, drawingState, isShapeMode, startPoint, tempCanvas]);
 
-  const stopDrawing = (e?: React.MouseEvent<HTMLCanvasElement>) => {
+  const stopDrawing = useCallback((e?: React.MouseEvent<HTMLCanvasElement>) => {
+    if (!isDrawing) return;
+    
     if (e) {
       e.preventDefault();
       e.stopPropagation();
     }
-    setIsDrawing(false);
-  };
-
-  const clearCanvas = () => {
+    
     const canvas = canvasRef.current;
-    const ctx = ctxRef.current;
-    if (!canvas || !ctx) return;
-    
-    ctx.fillStyle = 'white';
-    ctx.fillRect(0, 0, canvas.width, canvas.height);
-  };
-
-  const saveSketch = () => {
-    const canvas = canvasRef.current;
-    if (!canvas) return;
-    
-    // Convert canvas to base64 image data
-    const imageData = canvas.toDataURL('image/png');
-    
-    // Create attachment object
-    const attachment = {
-      id: `sketch-${Date.now()}`,
-      name: `${title || 'Sketch'}.png`,
-      type: 'image/png',
-      data: imageData,
-      thumbnail: imageData,
-      createdAt: new Date().toISOString(),
-    };
-    
-    // Trigger custom event for parent component to handle
-    const event = new CustomEvent('sketchSaved', {
-      detail: { 
-        nodeId: `sketch-${Date.now()}`,
-        title,
-        attachment 
-      }
-    });
-    window.dispatchEvent(event);
-    
-    // Also store in node data for serialization
-    if (typeof window !== 'undefined') {
-      // Sketch data is ready for serialization
+    if (canvas && (drawingState.tool === 'pen' || drawingState.tool === 'brush' || drawingState.tool === 'eraser' || isShapeMode)) {
+      // Save state to history
+      setHistory(prev => saveDrawingState(canvas, prev));
     }
-  };
-
-  const downloadSketch = () => {
-    const canvas = canvasRef.current;
-    if (!canvas) return;
     
-    const link = document.createElement('a');
-    link.download = `${title || 'sketch'}.png`;
-    link.href = canvas.toDataURL();
-    link.click();
-  };
+    setIsDrawing(false);
+  }, [isDrawing, drawingState.tool, isShapeMode]);
 
   return (
     <div ref={nodeRef} className="sketch-node" style={{ width: '100%', height: '100%' }}>
-      {selected && <NodeResizer minWidth={450} minHeight={400} />}
+      {selected && <NodeResizer minWidth={500} minHeight={450} />}
       <Handle type="target" position={Position.Top} />
       
       <div className="sketch-header">
@@ -211,63 +290,19 @@ const SketchNode: React.FC<SketchNodeProps> = ({ data, selected }) => {
           onMouseDown={(e) => e.stopPropagation()}
           onClick={(e) => e.stopPropagation()}
         />
-        
-        <div className="sketch-tools">
-          <button 
-            className={`sketch-tool ${currentTool === 'pen' ? 'active' : ''}`}
-            onClick={(e) => {
-              e.stopPropagation();
-              setCurrentTool('pen');
-            }}
-            onMouseDown={(e) => e.stopPropagation()}
-          >
-            ✏️
-          </button>
-          <button 
-            className={`sketch-tool ${currentTool === 'eraser' ? 'active' : ''}`}
-            onClick={(e) => {
-              e.stopPropagation();
-              setCurrentTool('eraser');
-            }}
-            onMouseDown={(e) => e.stopPropagation()}
-          >
-            🧽
-          </button>
-          <button 
-            className="sketch-tool"
-            onClick={(e) => {
-              e.stopPropagation();
-              clearCanvas();
-            }}
-            onMouseDown={(e) => e.stopPropagation()}
-            title="Clear canvas"
-          >
-            🗑️
-          </button>
-          <button 
-            className="sketch-tool"
-            onClick={(e) => {
-              e.stopPropagation();
-              saveSketch();
-            }}
-            onMouseDown={(e) => e.stopPropagation()}
-            title="Save as attachment"
-          >
-            💾
-          </button>
-          <button 
-            className="sketch-tool"
-            onClick={(e) => {
-              e.stopPropagation();
-              downloadSketch();
-            }}
-            onMouseDown={(e) => e.stopPropagation()}
-            title="Download sketch"
-          >
-            ⬇️
-          </button>
-        </div>
       </div>
+
+      <AdvancedDrawingToolbar
+        drawingState={drawingState}
+        onChange={handleDrawingStateChange}
+        onUndo={handleUndo}
+        onRedo={handleRedo}
+        onClear={handleClear}
+        onSave={handleSave}
+        onExport={handleExport}
+        canUndo={history.currentIndex > 0}
+        canRedo={history.currentIndex < history.states.length - 1}
+      />
       
       <canvas 
         ref={canvasRef}

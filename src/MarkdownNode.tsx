@@ -1,12 +1,23 @@
-import { memo, useState } from 'react';
+import { memo, useState, useCallback, useMemo } from 'react';
 import { Handle, Position, NodeResizer } from '@xyflow/react';
+import { CollapsibleSection, SmartTruncate } from './InformationComponents';
 
 interface MarkdownNodeProps {
   data: {
     content?: string;
     title?: string;
+    toc?: boolean; // Table of contents
+    outline?: boolean; // Document outline
   };
   selected?: boolean;
+}
+
+interface HeadingNode {
+  level: number;
+  title: string;
+  id: string;
+  children: HeadingNode[];
+  line: number;
 }
 
 function MarkdownNode({ data, selected }: MarkdownNodeProps) {
@@ -15,9 +26,100 @@ function MarkdownNode({ data, selected }: MarkdownNodeProps) {
   const [isEditing, setIsEditing] = useState(false);
   const [isEditingTitle, setIsEditingTitle] = useState(false);
   const [previewMode, setPreviewMode] = useState(false);
+  const [showOutline, setShowOutline] = useState(data.outline || false);
+  const [showStats, setShowStats] = useState(false);
+
+  // Parse headings from markdown for table of contents
+  const headingsStructure = useMemo((): HeadingNode[] => {
+    const lines = content.split('\n');
+    const headings: HeadingNode[] = [];
+    const stack: HeadingNode[] = [];
+
+    lines.forEach((line, index) => {
+      const headingMatch = line.match(/^(#{1,6})\s+(.+)$/);
+      if (headingMatch) {
+        const level = headingMatch[1].length;
+        const title = headingMatch[2];
+        const id = title.toLowerCase().replace(/[^a-z0-9\s]/g, '').replace(/\s+/g, '-');
+        
+        const node: HeadingNode = {
+          level,
+          title,
+          id,
+          children: [],
+          line: index
+        };
+
+        // Find the correct parent
+        while (stack.length > 0 && stack[stack.length - 1].level >= level) {
+          stack.pop();
+        }
+
+        if (stack.length === 0) {
+          headings.push(node);
+        } else {
+          stack[stack.length - 1].children.push(node);
+        }
+
+        stack.push(node);
+      }
+    });
+
+    return headings;
+  }, [content]);
+
+  // Document statistics
+  const documentStats = useMemo(() => {
+    const lines = content.split('\n');
+    const words = content.split(/\s+/).filter(Boolean);
+    const characters = content.length;
+    const charactersNoSpaces = content.replace(/\s/g, '').length;
+    const paragraphs = content.split(/\n\s*\n/).filter(Boolean).length;
+    const headings = headingsStructure.length;
+    
+    const codeBlocks = (content.match(/```[\s\S]*?```/g) || []).length;
+    const inlineCode = (content.match(/`[^`]+`/g) || []).length;
+    const links = (content.match(/\[([^\]]+)\]\(([^)]+)\)/g) || []).length;
+    const images = (content.match(/!\[([^\]]*)\]\(([^)]+)\)/g) || []).length;
+
+    return {
+      lines: lines.length,
+      words: words.length,
+      characters,
+      charactersNoSpaces,
+      paragraphs,
+      headings,
+      codeBlocks,
+      inlineCode,
+      links,
+      images
+    };
+  }, [content, headingsStructure.length]);
+
+  const readingTime = Math.ceil(documentStats.words / 200); // ~200 words per minute
+
+  // Render table of contents tree
+  const renderTOCTree = useCallback((headings: HeadingNode[], depth = 0): JSX.Element[] => {
+    return headings.map((heading) => (
+      <div key={heading.id} className={`toc-item level-${heading.level}`} style={{ marginLeft: `${depth * 12}px` }}>
+        <button
+          className="toc-link"
+          onClick={(e) => {
+            e.stopPropagation();
+            // Would scroll to heading in a real implementation
+            console.log(`Navigate to: ${heading.title}`);
+          }}
+          title={`Go to: ${heading.title}`}
+        >
+          {'#'.repeat(heading.level)} {heading.title}
+        </button>
+        {heading.children.length > 0 && renderTOCTree(heading.children, depth + 1)}
+      </div>
+    ));
+  }, []);
 
   // Safe markdown to React elements converter
-  const renderMarkdown = (md: string) => {
+  const renderMarkdown = useCallback((md: string) => {
     const lines = md.split('\n');
     const elements: JSX.Element[] = [];
     let currentList: string[] = [];
@@ -27,7 +129,15 @@ function MarkdownNode({ data, selected }: MarkdownNodeProps) {
         elements.push(
           <ul key={`list-${elements.length}`}>
             {currentList.map((item, idx) => (
-              <li key={idx} dangerouslySetInnerHTML={{ __html: item }} />
+              <li key={idx}>
+                {item.replace(/^\*\s*/, '').replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>').replace(/\*(.*?)\*/g, '<em>$1</em>')}
+              </li>
+            ))}
+          </ul>
+        );
+        currentList = [];
+      }
+    };
             ))}
           </ul>
         );
