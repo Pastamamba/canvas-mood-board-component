@@ -11,6 +11,7 @@ import {
 } from '@xyflow/react';
 
 import '@xyflow/react/dist/style.css';
+import ErrorBoundary from './ErrorBoundary';
 
 import {
   nodes as initialNodes,
@@ -264,9 +265,10 @@ const OverviewFlow = () => {
   }, [nodes, setNodes]);
 
   return (
-    <div className="flow-container">
-      <Sidebar />
-      <div className="canvas-container" ref={reactFlowWrapper}>
+    <ErrorBoundary>
+      <div className="flow-container">
+        <Sidebar />
+        <div className="canvas-container" ref={reactFlowWrapper}>
         <ReactFlow
           nodes={nodes}
           edges={edges}
@@ -306,7 +308,7 @@ const OverviewFlow = () => {
           </button>
         </div>
       </div>
-    </div>
+    </ErrorBoundary>
   );
 };
 
